@@ -1727,6 +1727,181 @@ body.lb-open .pet-dock{display:none}  /* mở xem ảnh thì giấu hẳn pet đ
   .rf-choice{padding:0 18px}
   .stg-back, .stg-timer{padding:0 16px}
 }
+/* ---- 87-code.css ---- */
+/* ===== 87-code.css — khối mã trình bày như trình soạn thảo + popover xem nhanh =====
+   Đi cùng src/js/87-code.js. Không sửa file CSS nào có sẵn: mọi thứ ở đây đều là
+   class mới (.ide*, .k-i, .eye, .qv*) hoặc đè đúng một thuộc tính của .tc-fe/.fe
+   sau khi JS đã thay ruột chúng. */
+
+/* ---------- bảng màu: cố định, KHÔNG theo sáng/tối của trang ----------
+   Lý do: khối mã phải nhìn như cửa sổ editor, đổi màu theo nền trang thì mất
+   cái cảm giác đó, mà mã lại là chỗ anh nhìn lâu nhất. */
+:root{
+  --ide-bg:#161a2b; --ide-bar:#1e2439; --ide-edge:#2b3350; --ide-gut:#4a5578;
+  --ide-tx:#c9d3f0;  --ide-vi:#95a3c6;
+  --ide-kw:#c792ea; --ide-ty:#82aaff; --ide-fn:#ffcb6b; --ide-nu:#f78c6c;
+  --ide-st:#c3e88d; --ide-op:#89ddff; --ide-pu:#7d8bb3; --ide-cm:#6b7a9e;
+}
+
+/* ---------- 1. khối mã nhiều dòng ---------- */
+.ide{
+  border-radius:12px; overflow:hidden; background:var(--ide-bg);
+  border:1px solid var(--ide-edge); box-shadow:0 2px 10px rgba(16,20,38,.18);
+  margin:0; min-width:0;
+}
+.ide-bar{
+  display:flex; align-items:center; gap:9px; padding:7px 11px;
+  background:var(--ide-bar); border-bottom:1px solid var(--ide-edge);
+}
+.ide-dots{display:inline-flex; gap:5px; flex:0 0 auto}
+.ide-dots i{width:9px; height:9px; border-radius:50%; background:#ff5f57}
+.ide-dots i:nth-child(2){background:#febc2e}
+.ide-dots i:nth-child(3){background:#28c840}
+.ide-name{
+  font:500 12px/1.3 var(--font-mono); color:#8f9ec4; letter-spacing:.01em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; flex:1 1 auto;
+}
+.ide-copy{
+  flex:0 0 auto; border:0; background:transparent; color:#8f9ec4; cursor:pointer;
+  font:500 11.5px/1 var(--font-sans, inherit); display:inline-flex; align-items:center; gap:5px;
+  padding:4px 7px; border-radius:7px; transition:background .15s linear, color .15s linear;
+}
+.ide-copy:hover{background:rgba(255,255,255,.08); color:#d6def5}
+.ide-copy.done{color:#28c840}
+.ide-body{
+  margin:0; padding:10px 0; overflow-x:auto; overflow-y:hidden;
+  font:500 13.5px/1.75 var(--font-mono); color:var(--ide-tx);
+  -webkit-overflow-scrolling:touch;
+}
+.ide-body code{background:none; padding:0; border:0; color:inherit; font:inherit; display:block}
+.ide-l{display:flex; align-items:flex-start; padding:0 14px 0 0}
+.ide-l:hover{background:rgba(255,255,255,.035)}
+.ide-n{
+  flex:0 0 auto; width:38px; padding-right:12px; text-align:right;
+  color:var(--ide-gut); user-select:none; -webkit-user-select:none;
+}
+/* xuống hàng thay vì bắt cuộn ngang: thẻ công thức hẹp, cuộn ngang là mất chữ */
+.ide-c{flex:1 1 auto; white-space:pre-wrap; overflow-wrap:anywhere; min-width:0}
+
+/* token */
+.ide .t-kw{color:var(--ide-kw)}
+.ide .t-ty{color:var(--ide-ty)}
+.ide .t-fn{color:var(--ide-fn)}
+.ide .t-nu{color:var(--ide-nu)}
+.ide .t-st{color:var(--ide-st)}
+.ide .t-op{color:var(--ide-op)}
+.ide .t-pu{color:var(--ide-pu)}
+.ide .t-cm{color:var(--ide-cm); font-style:italic}
+.ide .t-vi{color:var(--ide-vi)}      /* lời tiếng Việt xen trong mã: để nhạt đi */
+
+/* .tc-fe / .fe sau khi JS thay ruột: bỏ nền và font cũ, nhường cho .ide */
+.tc-fe.has-ide, .fe.has-ide{
+  background:none; padding:0; margin-top:7px; overflow:visible; white-space:normal;
+}
+/* thẻ công thức bọc ngoài: nền nhạt cũ chọi với khối tối, làm nhẹ đi */
+.tc-f:has(.ide){background:var(--surface-sunken, #f3f5f9)}
+/* có khối mã thì nới cột ra, 240px vừa cho một dòng chữ chứ không vừa cho mã */
+.tc-fx:has(.ide){grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+
+/* ---------- 2. mã ngắn nằm trong câu văn ---------- */
+code.k-i{
+  font:500 .93em/1.45 var(--font-mono);
+  background:var(--ide-bg); color:var(--ide-tx);
+  padding:2px 7px; border-radius:6px; border:1px solid var(--ide-edge);
+  white-space:nowrap; word-break:keep-all;
+}
+code.k-i .t-kw{color:var(--ide-kw)} code.k-i .t-ty{color:var(--ide-ty)}
+code.k-i .t-fn{color:var(--ide-fn)} code.k-i .t-nu{color:var(--ide-nu)}
+code.k-i .t-st{color:var(--ide-st)} code.k-i .t-op{color:var(--ide-op)}
+code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
+/* <code> sẵn có trong dữ liệu cũng theo bộ màu này */
+.tcard code:not(.k-i), .topic code:not(.k-i), .stg-q code:not(.k-i){
+  font:500 .93em/1.45 var(--font-mono);
+  background:var(--ide-bg); color:var(--ide-tx);
+  padding:2px 7px; border-radius:6px; border:1px solid var(--ide-edge);
+}
+
+/* ---------- 3. nút con mắt: xem nhanh hình gốc ---------- */
+.eye{
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  vertical-align:baseline; margin:0 1px 0 4px; padding:1px 7px 2px;
+  min-height:22px; border:1px solid var(--qd-light-blue, #cfe2ff);
+  border-radius:999px; background:var(--qd-background-info, #e7f3ff);
+  color:var(--accent, #2275ff); cursor:pointer; font:600 11px/1 inherit;
+  transition:background .15s linear, border-color .15s linear, transform var(--duration-press, .08s) linear;
+}
+.eye:hover{background:#d7e9ff; border-color:var(--accent, #2275ff)}
+.eye:active{transform:scale(.93)}
+.eye[aria-expanded="true"]{background:var(--accent, #2275ff); border-color:var(--accent, #2275ff); color:#fff}
+.eye i{font-size:11px}
+.eye .eye-n{font-variant-numeric:tabular-nums}
+.tc-src .eye{margin-left:5px}
+
+/* ---------- 4. popover xem nhanh ---------- */
+.qv{
+  position:fixed; z-index:98; width:min(520px, calc(100vw - 24px));
+  max-height:calc(100vh - 24px);
+  background:var(--surface-card, #fff); border:1px solid var(--border-default, #e2e8f0);
+  border-radius:14px; box-shadow:0 18px 44px rgba(40,45,76,.26);
+  overflow:hidden; display:flex; flex-direction:column;
+}
+.qv[hidden]{display:none}
+.qv-h{
+  display:flex; align-items:center; gap:9px; padding:9px 11px;
+  border-bottom:1px solid var(--border-hairline, #eef1f6); background:var(--surface-sunken, #f7f9fc);
+}
+.qv-t{
+  flex:1 1 auto; min-width:0; font-size:13px; font-weight:600; line-height:1.3;
+  color:var(--text-primary, #282d4c); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.qv-x{
+  flex:0 0 auto; width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+  border:0; border-radius:8px; background:transparent; color:var(--text-muted, #a0aec0); cursor:pointer;
+}
+.qv-x:hover{background:var(--surface-disabled, #eef1f6); color:var(--text-primary, #282d4c)}
+.qv-b{padding:10px 11px; display:flex; flex-direction:column; gap:8px; overflow:auto; max-height:min(62vh, 440px)}
+.qv-img{
+  display:block; width:100%; height:auto; border-radius:9px;
+  border:1px solid var(--border-hairline, #eef1f6); background:var(--surface-sunken, #f7f9fc);
+}
+.qv-c{margin:0; font-size:12.5px; line-height:1.5; color:var(--text-body, #5b6484)}
+.qv-f{
+  display:flex; align-items:center; gap:8px; padding:8px 11px;
+  border-top:1px solid var(--border-hairline, #eef1f6); background:var(--surface-sunken, #f7f9fc);
+}
+.qv-f .qv-i{margin-left:auto; font-size:11.5px; color:var(--text-muted, #a0aec0); font-variant-numeric:tabular-nums}
+.qv-nav{
+  width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--border-default, #e2e8f0); border-radius:8px;
+  background:var(--surface-card, #fff); color:var(--text-primary, #282d4c); cursor:pointer;
+}
+.qv-nav:disabled{opacity:.4; cursor:default}
+.qv-zoom{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 11px; min-height:30px;
+  border:0; border-radius:8px; background:var(--accent, #2275ff); color:#fff;
+  font:600 12px/1 inherit; cursor:pointer;
+}
+.qv-miss{padding:14px 4px; text-align:center; font-size:12.5px; color:var(--text-muted, #a0aec0)}
+
+/* điện thoại: popover trượt lên từ đáy như bảng chọn của ứng dụng di động */
+@media (max-width:720px){
+  .qv{
+    left:8px !important; right:8px !important; width:auto;
+    top:auto !important; bottom:calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    border-radius:16px;
+  }
+  .qv-b{max-height:52vh}
+  .ide-body{font-size:12.5px}
+  .ide-n{width:30px; padding-right:9px}
+}
+
+@media print{
+  .eye, .qv, .ide-copy{display:none !important}
+  .ide{background:#fff; border-color:#ccc}
+  .ide-bar{display:none}
+  .ide-body{color:#111}
+  .ide .t-kw,.ide .t-ty,.ide .t-fn,.ide .t-nu,.ide .t-st,.ide .t-op,.ide .t-pu,.ide .t-vi{color:#111}
+}
 </style>
 
 <div class="wrap">
@@ -4684,6 +4859,406 @@ APP.views.exam = {
     new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => {
       if (n.nodeType === 1) gắn(n.matches && n.matches(CHỌN) ? n.parentNode : n);
     }))).observe(views, { childList: true, subtree: true });
+})();
+
+/* ==== 87-code.js ==== */
+/* ===== 87-code.js — mã nhìn như trong trình soạn thảo + con mắt xem nhanh hình gốc =====
+   Hai việc, đều chạy SAU khi các view đã vẽ xong, bằng cách soi lại DOM:
+     1) biểu thức (.tc-fe/.fe) và mã lọt trong câu văn  -> tô màu, đánh số dòng
+     2) chỗ nào nhắc tới một câu đề cụ thể              -> gắn nút con mắt, bấm xem ngay hình gốc
+   Không đụng vào 00-core.js hay module view nào: chỉ đọc VIS/ASSET_BASE/APP.openGallery
+   vốn đã có sẵn trong cùng phạm vi, và chỉ thêm class mới (xem src/css/87-code.css). */
+(function () {
+  if (typeof document === 'undefined') return;
+
+  /* =========================================================
+     1. CHỈ MỤC HÌNH: từ tên file suy ra "đề nào, câu mấy"
+     citd-p06-q23.webp -> citd:23 · hk2-p04-q18.webp -> hk2:18
+     quiz-dong-bo-cau-17-18.webp -> tk:c5:17 và tk:c5:18 (một ảnh ôm nhiều câu)
+     ========================================================= */
+  const QUIZ_CH = { 'dong-bo': 'c5', 'bo-nho': 'c7', 'bo-nho-ao': 'c8' };
+  const IDX = {};
+  function ghiIdx(k, it) { (IDX[k] = IDX[k] || []).push(it); }
+  (function dựngIdx() {
+    const nguồn = (typeof VIS === 'object' && VIS) || {};
+    const đãThấy = new Set(), tất = [];
+    const gom = o => {
+      if (!o) return;
+      if (Array.isArray(o)) return o.forEach(gom);
+      if (typeof o !== 'object') return;
+      if (o.img) { if (!đãThấy.has(o.img)) { đãThấy.add(o.img); tất.push(o); } return; }
+      Object.keys(o).forEach(k => gom(o[k]));
+    };
+    ['topics', 'questions', 'citd'].forEach(k => gom(nguồn[k]));
+    tất.forEach(it => {
+      const f = String(it.img || '');
+      let m = /(?:^|\/)citd-p\d+-q(\d+)\./.exec(f);
+      if (m) return ghiIdx('citd:' + +m[1], it);
+      m = /(?:^|\/)hk2-p\d+-q(\d+)\./.exec(f);
+      if (m) return ghiIdx('hk2:' + +m[1], it);
+      m = /(?:^|\/)quiz-(.+?)-cau-(\d+)(?:-(\d+))?\./.exec(f);
+      if (m) {
+        const ch = QUIZ_CH[m[1]];
+        if (!ch) return;
+        const a = +m[2], b = m[3] ? +m[3] : a;
+        for (let n = a; n <= b && n - a < 12; n++) ghiIdx('tk:' + ch + ':' + n, it);
+      }
+    });
+  })();
+
+  const TÊN_ĐỀ = { citd: 'Đề cuối kỳ CITD HK1 2024-2025', hk2: 'Đề cuối kỳ HK II 2024-2025',
+    'tk:c5': 'Tiểu kết Chương 5', 'tk:c7': 'Tiểu kết Chương 7', 'tk:c8': 'Tiểu kết Chương 8' };
+  const nhãnRef = key => {
+    const p = key.split(':');
+    const số = p[p.length - 1];
+    const đề = TÊN_ĐỀ[p.slice(0, -1).join(':')] || 'Đề thi';
+    return 'Câu ' + số + ' · ' + đề;
+  };
+
+  /* =========================================================
+     2. TÔ MÀU: pseudo-code kiểu C mà thầy viết trên slide, có lẫn tiếng Việt
+     ========================================================= */
+  const KW = /^(?:while|if|else|for|do|return|break|continue|switch|case|goto|repeat|until|then)$/;
+  const TY = /^(?:int|long|short|char|float|double|void|bool|boolean|unsigned|signed|struct|union|enum|const|static|typedef|semaphore|mutex|condition|monitor|shared|var)$/;
+  const esc2 = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const CÓ_DẤU = /[ăâêôơưđàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/i;
+
+  function tô(src) {
+    const s = String(src == null ? '' : src);
+    let out = '', i = 0;
+    const đẩy = (cls, txt) => { out += '<span class="t-' + cls + '">' + esc2(txt) + '</span>'; };
+    while (i < s.length) {
+      const c = s[i];
+      /* chú thích */
+      if (c === '/' && s[i + 1] === '/') { const j = s.indexOf('\n', i); const e = j < 0 ? s.length : j; đẩy('cm', s.slice(i, e)); i = e; continue; }
+      /* chuỗi */
+      if (c === '"' || c === "'") {
+        let j = i + 1;
+        while (j < s.length && s[j] !== c) j += (s[j] === '\\' ? 2 : 1);
+        đẩy('st', s.slice(i, Math.min(j + 1, s.length))); i = j + 1; continue;
+      }
+      /* số (kể cả 1.5, 2⁻³ thì thôi) */
+      if (/[0-9]/.test(c)) { let j = i; while (j < s.length && /[0-9.,]/.test(s[j]) && !(s[j] === '.' && !/[0-9]/.test(s[j + 1] || ''))) j++; đẩy('nu', s.slice(i, j)); i = j; continue; }
+      /* định danh / từ tiếng Việt */
+      if (/[A-Za-zÀ-ỹ_]/.test(c)) {
+        let j = i; while (j < s.length && /[\w$À-ỹ]/.test(s[j])) j++;
+        let w = s.slice(i, j);
+        /* chấm nối: S.value, obj.field */
+        while (s[j] === '.' && /[A-Za-z_]/.test(s[j + 1] || '')) { let k = j + 1; while (k < s.length && /[\w$]/.test(s[k])) k++; w = s.slice(i, k); j = k; }
+        const sau = s.slice(j).match(/^\s*\(/);
+        if (KW.test(w)) đẩy('kw', w);
+        else if (TY.test(w)) đẩy('ty', w);
+        else if (sau) đẩy('fn', w);
+        else if (CÓ_DẤU.test(w)) đẩy('vi', w);          /* chữ tiếng Việt xen giữa: để nhạt */
+        else out += esc2(w);
+        i = j; continue;
+      }
+      /* toán tử */
+      if (/[=+\-*/%<>!&|^~?:←→⇒≤≥≠]/.test(c)) { let j = i; while (j < s.length && /[=+\-*/%<>!&|^~?:←→⇒≤≥≠]/.test(s[j])) j++; đẩy('op', s.slice(i, j)); i = j; continue; }
+      /* dấu ngăn */
+      if (/[{}()[\];,.]/.test(c)) { đẩy('pu', c); i++; continue; }
+      out += esc2(c); i++;
+    }
+    return out;
+  }
+
+  /* cắt một biểu thức dài thành nhiều dòng cho dễ đọc:
+     ngắt ở chỗ thụt 3 khoảng trắng trở lên, và ở dấu ; nằm NGOÀI ngoặc nhọn */
+  function cắtDòng(src) {
+    const thô = String(src).split(/\s{3,}|\n/).map(x => x.trim()).filter(Boolean);
+    const ra = [];
+    thô.forEach(dòng => {
+      if (dòng.length <= 46 || dòng.indexOf(';') < 0) { ra.push(dòng); return; }
+      let sâu = 0, đầu = 0;
+      for (let i = 0; i < dòng.length; i++) {
+        const c = dòng[i];
+        if (c === '{' || c === '(') sâu++;
+        else if (c === '}' || c === ')') sâu--;
+        else if (c === ';' && sâu <= 0) {
+          const phần = dòng.slice(đầu, i + 1).trim();
+          if (phần) ra.push(phần);
+          đầu = i + 1;
+        }
+      }
+      const cuối = dòng.slice(đầu).trim();
+      if (cuối) ra.push(cuối);
+    });
+    return ra.length ? ra : [String(src).trim()];
+  }
+
+  let sốIde = 0;
+  function khốiIde(src, tên) {
+    const dòng = cắtDòng(src), id = 'ide' + (++sốIde);
+    let h = '<div class="ide" data-ide="' + id + '"><div class="ide-bar"><span class="ide-dots" aria-hidden="true"><i></i><i></i><i></i></span>'
+      + '<span class="ide-name">' + esc2(tên || 'pseudo-code') + '</span>'
+      + '<button type="button" class="ide-copy" data-ide-copy="' + id + '"><i class="fa-regular fa-clone" aria-hidden="true"></i><span>Chép</span></button></div>'
+      + '<pre class="ide-body"><code>';
+    dòng.forEach((d, i) => {
+      h += '<span class="ide-l"><span class="ide-n">' + (i + 1) + '</span><span class="ide-c">' + tô(d) + '</span></span>';
+    });
+    return h + '</code></pre></div>';
+  }
+  const NGUỒN_IDE = {};   /* id -> văn bản gốc, để nút Chép lấy đúng bản chưa tô màu */
+
+  /* =========================================================
+     3. NHẬN DẠNG TRONG CÂU VĂN
+     ========================================================= */
+  /* mã ngắn: chỉ bắt những mẫu không thể nhầm với tiếng Việt */
+  const RE_MÃ = new RegExp([
+    '\\b(?:while|if|for|switch)\\s*\\([^()]{0,40}\\)\\s*\\{[^{}]{0,90}\\}',
+    '\\b(?:while|if|for|switch)\\s*\\([^()]{0,40}\\)',
+    '\\b(?:wait|signal|block|wakeup|acquire|release|TestAndSet|Swap|sem_wait|sem_post|sem_init|pthread_mutex_lock|pthread_mutex_unlock|pthread_create|pthread_join)\\s*\\([^()]{0,34}\\)',
+    '\\b[PV]\\s*\\([A-Za-z_]\\w{0,12}\\)',
+    '\\bS\\.(?:value|list)\\b',
+    '\\b[A-Za-z_]\\w{0,18}(?:\\+\\+|--)(?![\\w])'
+  ].join('|'), 'g');
+
+  /* nhắc tới câu đề: "câu 23 CITD" hoặc "đề CITD HK1 2024-2025 câu 23" (hai chiều) */
+  const RE_REF = /(?:c[âa]u\s+(\d{1,2})[^.;:!?]{0,26}?(CITD|HK\s*2(?!\d)|HK\s*II|ti[êe]̂?̉?u\s*k[êe]́?t|tiểu\s*kết)|(CITD|HK\s*2(?!\d)|HK\s*II)[^.;:!?]{0,34}?c[âa]u\s+(\d{1,2}))/gi;
+
+  function khóaRef(tênĐề, số, el, đuôi) {
+    const t = String(tênĐề).toLowerCase().replace(/\s+/g, '');
+    if (t.indexOf('citd') === 0) return 'citd:' + số;
+    if (t.indexOf('hk') === 0) return 'hk2:' + số;
+    /* tiểu kết: ưu tiên "Chương N" viết ngay sau, không có thì lấy chương của thẻ đang đứng */
+    let ch = '';
+    const m = /ch[uư]ơng\s*([578])/i.exec(đuôi || '');
+    if (m) ch = 'c' + m[1];
+    else {
+      const h = el.closest && el.closest('[data-topic],[data-ch],[data-chap]');
+      const v = h && (h.dataset.topic || h.dataset.ch || h.dataset.chap) || '';
+      const m2 = /c?([578])/.exec(String(v).slice(0, 3));
+      if (m2) ch = 'c' + m2[1];
+    }
+    return ch ? 'tk:' + ch + ':' + số : '';
+  }
+
+  function nútMắt(key, nhãn) {
+    const n = (IDX[key] || []).length;
+    if (!n) return '';
+    return '<button type="button" class="eye" data-eye="' + key + '" aria-expanded="false" title="Xem nhanh: ' + nhãn.replace(/"/g, '&quot;') + '">'
+      + '<i class="fa-regular fa-eye" aria-hidden="true"></i>' + (n > 1 ? '<span class="eye-n">' + n + '</span>' : '') + '</button>';
+  }
+
+  /* =========================================================
+     4. SOI DOM
+     ========================================================= */
+  /* nhãn, tiêu đề, nút: đã in hoa / đã có kiểu riêng, bọc mã vào đó chỉ tổ rối */
+  const BỎ = 'code,pre,.ide,.eye,.qv,script,style,textarea,input,select,button,.qsel-menu,#lightbox,.pet-panel,'
+    + '.qd-thumb,.lb-cap,.ide-bar,.tc-fn,.fn,.qd-eyebrow,.tc-t,.qd-card-t,.qd-chip,.badge,h1,h2,h3,h4,th,summary';
+
+  function nângBiểuThức(gốc) {
+    gốc.querySelectorAll('.tc-fe:not([data-k]),.fe:not([data-k])').forEach(el => {
+      el.dataset.k = '1';
+      const thô = el.textContent.trim();
+      if (!thô) return;
+      /* tên trên thanh: lấy vế đầu của nhãn ("wait(S) — bản không busy waiting" -> "wait(S)") */
+      const nh = (el.previousElementSibling && /tc-fn|fn/.test(el.previousElementSibling.className))
+        ? el.previousElementSibling.textContent.trim() : '';
+      const tên = nh ? nh.split(/\s[—–-]\s/)[0].trim().slice(0, 42) : '';
+      el.classList.add('has-ide');
+      el.innerHTML = khốiIde(thô, tên);
+      const hộp = el.querySelector('[data-ide]');
+      if (hộp) NGUỒN_IDE[hộp.dataset.ide] = thô;
+    });
+  }
+
+  function cácNútChữ(gốc) {
+    const ra = [];
+    const w = document.createTreeWalker(gốc, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        if (!n.nodeValue || n.nodeValue.length < 4) return NodeFilter.FILTER_REJECT;
+        const p = n.parentElement;
+        if (!p || (p.closest && p.closest(BỎ))) return NodeFilter.FILTER_REJECT;
+        if (p.dataset && p.dataset.k === '1') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    let n; while ((n = w.nextNode())) ra.push(n);
+    return ra;
+  }
+
+  function nângChữ(gốc) {
+    cácNútChữ(gốc).forEach(nút => {
+      const s = nút.nodeValue;
+      const el = nút.parentElement;
+      /* gom mọi chỗ cần thay trong MỘT lượt, rồi mới dựng HTML — tránh lệch chỉ số */
+      const mốc = [];
+      let m;
+      RE_MÃ.lastIndex = 0;
+      while ((m = RE_MÃ.exec(s))) {
+        /* "wakeup (ngủ và đánh thức)" KHÔNG phải mã: mã thật không có chữ tiếng Việt */
+        if (CÓ_DẤU.test(m[0])) continue;
+        mốc.push({ a: m.index, b: m.index + m[0].length, html: '<code class="k-i">' + tô(m[0]) + '</code>' });
+      }
+      RE_REF.lastIndex = 0;
+      while ((m = RE_REF.exec(s))) {
+        const số = m[1] || m[4], đề = m[2] || m[3];
+        if (!số || !đề) continue;
+        const key = khóaRef(đề, +số, el, s.slice(m.index, m.index + m[0].length + 24));
+        if (!key || !IDX[key]) continue;
+        const h = nútMắt(key, nhãnRef(key));
+        if (!h) continue;
+        const b = m.index + m[0].length;
+        if (mốc.some(x => b > x.a && b <= x.b)) continue;      /* đang nằm trong đoạn mã: bỏ */
+        mốc.push({ a: b, b: b, html: h });                      /* chèn ngay sau cụm nhắc tới */
+      }
+      if (!mốc.length) return;
+      mốc.sort((x, y) => x.a - y.a || x.b - y.b);
+      let out = '', i = 0, bỏQua = -1;
+      mốc.forEach(k => {
+        if (k.a < bỏQua) return;
+        out += esc2(s.slice(i, k.a)) + k.html;
+        i = k.b; bỏQua = k.b;
+      });
+      out += esc2(s.slice(i));
+      const hộp = document.createElement('span');
+      hộp.dataset.k = '1';
+      hộp.innerHTML = out;
+      nút.parentNode.replaceChild(hộp, nút);
+    });
+  }
+
+  /* dòng nguồn của ví dụ: thêm một con mắt gom hết hình của chủ đề đang đọc */
+  function nângNguồn(gốc) {
+    gốc.querySelectorAll('.tc-src:not([data-ks]),.ex .src:not([data-ks])').forEach(el => {
+      el.dataset.ks = '1';
+      const thẻ = el.closest('[data-topic]');
+      const id = thẻ && thẻ.dataset.topic;
+      const ds = id && VIS.topics && VIS.topics[id];
+      if (!ds || !ds.length) return;
+      const key = 'topic:' + id;
+      IDX[key] = ds;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'eye'; b.dataset.eye = key;
+      b.setAttribute('aria-expanded', 'false');
+      b.title = 'Xem nhanh ' + ds.length + ' hình gốc của chủ đề này';
+      b.innerHTML = '<i class="fa-regular fa-eye" aria-hidden="true"></i><span class="eye-n">' + ds.length + '</span>';
+      el.appendChild(b);
+      if (!TÊN_ĐỀ[key]) TÊN_ĐỀ[key] = 'Hình gốc của chủ đề';
+    });
+  }
+
+  /* =========================================================
+     5. POPOVER XEM NHANH
+     ========================================================= */
+  let qv = null, qvKey = '', qvI = 0, qvNút = null;
+  function dựngQv() {
+    if (qv) return qv;
+    qv = document.createElement('div');
+    qv.className = 'qv'; qv.id = 'qv'; qv.hidden = true;
+    qv.setAttribute('role', 'dialog');
+    qv.setAttribute('aria-label', 'Xem nhanh hình gốc');
+    document.body.appendChild(qv);
+    return qv;
+  }
+  const ảnhSrc = it => (typeof ASSET_BASE === 'string' ? ASSET_BASE : '') + String(it.img || '').replace(/^\/+/, '');
+  const chỗ = it => [it.src, it.page != null && it.page !== '' ? 'trang ' + it.page : ''].filter(Boolean).join(' · ');
+
+  function vẽQv() {
+    const ds = IDX[qvKey] || [];
+    const it = ds[qvI];
+    const tiêu = qvKey.indexOf('topic:') === 0 ? 'Hình gốc của chủ đề' : nhãnRef(qvKey);
+    let h = '<div class="qv-h"><span class="qv-t">' + esc2(tiêu) + '</span>'
+      + '<button type="button" class="qv-x" data-qv="x" aria-label="Đóng"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>';
+    if (!it) h += '<div class="qv-b"><p class="qv-miss">Chưa có hình cho chỗ này.</p></div>';
+    else {
+      h += '<div class="qv-b"><img class="qv-img" src="' + esc2(ảnhSrc(it)).replace(/"/g, '&quot;') + '" alt="' + esc2(it.cap || '').replace(/"/g, '&quot;') + '" decoding="async">'
+        + (it.cap ? '<p class="qv-c">' + esc2(it.cap) + '</p>' : '')
+        + (chỗ(it) ? '<p class="qv-c"><b>' + esc2(chỗ(it)) + '</b></p>' : '') + '</div>'
+        + '<div class="qv-f">'
+        + (ds.length > 1 ? '<button type="button" class="qv-nav" data-qv="prev" aria-label="Hình trước"' + (qvI ? '' : ' disabled') + '><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>'
+          + '<button type="button" class="qv-nav" data-qv="next" aria-label="Hình sau"' + (qvI < ds.length - 1 ? '' : ' disabled') + '><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>' : '')
+        + '<button type="button" class="qv-zoom" data-qv="zoom"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>Phóng to</button>'
+        + '<span class="qv-i">' + (qvI + 1) + ' / ' + ds.length + '</span></div>';
+    }
+    qv.innerHTML = h;
+  }
+  function đặtQv(nút) {
+    if (!nút || innerWidth <= 720) return;                    /* điện thoại: CSS neo đáy màn hình */
+    const r = nút.getBoundingClientRect(), w = qv.offsetWidth || 520, h = qv.offsetHeight || 300;
+    let x = r.left + r.width / 2 - w / 2;
+    x = Math.max(12, Math.min(x, innerWidth - w - 12));
+    let y = r.bottom + 10;
+    if (y + h > innerHeight - 12) y = r.top - h - 10;         /* không đủ chỗ dưới thì lật lên trên */
+    y = Math.max(12, Math.min(y, innerHeight - h - 12));      /* lật lên vẫn thừa thì kẹp vào trong màn hình */
+    qv.style.left = x + 'px'; qv.style.top = y + 'px';
+  }
+  function mởQv(nút, key) {
+    dựngQv();
+    if (qvNút && qvNút !== nút) qvNút.setAttribute('aria-expanded', 'false');
+    qvKey = key; qvI = 0; qvNút = nút;
+    nút.setAttribute('aria-expanded', 'true');
+    qv.hidden = false; vẽQv(); đặtQv(nút);
+    requestAnimationFrame(() => đặtQv(nút));                  /* ảnh vào mới biết chiều cao thật */
+    const im = qv.querySelector('.qv-img');                   /* ảnh tải xong, cao thêm -> đặt lại */
+    if (im) { im.addEventListener('load', () => đặtQv(qvNút), { once: true }); im.addEventListener('error', () => đặtQv(qvNút), { once: true }); }
+  }
+  function đóngQv() {
+    if (!qv || qv.hidden) return;
+    qv.hidden = true; qv.innerHTML = '';
+    if (qvNút) { qvNút.setAttribute('aria-expanded', 'false'); qvNút = null; }
+  }
+  APP.closeQuickView = đóngQv;
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest ? e.target.closest('[data-eye],[data-qv],[data-ide-copy]') : null;
+    if (t && t.dataset.ideCopy != null) {
+      const txt = NGUỒN_IDE[t.dataset.ideCopy] || '';
+      const xong = () => { t.classList.add('done'); const s = t.querySelector('span'); if (s) s.textContent = 'Đã chép'; setTimeout(() => { t.classList.remove('done'); if (s) s.textContent = 'Chép'; }, 1400); };
+      try { navigator.clipboard.writeText(txt).then(xong, () => {}); } catch (_) {}
+      return;
+    }
+    if (t && t.dataset.eye != null) {
+      e.preventDefault(); e.stopPropagation();
+      if (qvNút === t && qv && !qv.hidden) return đóngQv();
+      return mởQv(t, t.dataset.eye);
+    }
+    if (t && t.dataset.qv) {
+      e.preventDefault();
+      const k = t.dataset.qv, ds = IDX[qvKey] || [];
+      if (k === 'x') return đóngQv();
+      if (k === 'prev' && qvI > 0) { qvI--; vẽQv(); return đặtQv(qvNút); }
+      if (k === 'next' && qvI < ds.length - 1) { qvI++; vẽQv(); return đặtQv(qvNút); }
+      if (k === 'zoom') { const d = ds; đóngQv(); if (typeof APP.openGallery === 'function') APP.openGallery(d, qvI); return; }
+      return;
+    }
+    if (qv && !qv.hidden && !e.target.closest('.qv')) đóngQv();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && qv && !qv.hidden) { e.stopPropagation(); đóngQv(); } }, true);
+  addEventListener('resize', () => { if (qv && !qv.hidden) đặtQv(qvNút); });
+  addEventListener('scroll', () => { if (qv && !qv.hidden && innerWidth > 720) đặtQv(qvNút); }, true);
+
+  /* =========================================================
+     6. CHẠY — lần đầu và mỗi khi view vẽ lại
+     ========================================================= */
+  let đangChạy = false;
+  function quét(gốc) {
+    if (đangChạy) return;
+    đangChạy = true;
+    try {
+      const g = gốc && gốc.querySelectorAll ? gốc : document.body;
+      nângBiểuThức(g); nângNguồn(g); nângChữ(g);
+    } catch (e) { if (window.console) console.warn('87-code:', e); }
+    đangChạy = false;
+  }
+  APP.relayoutCode = quét;
+
+  function bắtĐầu() {
+    quét(document.body);
+    if (!window.MutationObserver) return;
+    let hẹn = 0;
+    const ob = new MutationObserver(ms => {
+      if (đangChạy) return;
+      let đáng = false;
+      for (const m of ms) { if (m.type === 'childList' && m.addedNodes.length) { đáng = true; break; } }
+      if (!đáng || hẹn) return;
+      hẹn = setTimeout(() => { hẹn = 0; ob.disconnect(); quét(document.body); ob.observe(document.body, { childList: true, subtree: true }); }, 60);
+    });
+    ob.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bắtĐầu);
+  else bắtĐầu();
 })();
 
 /* ==== 90-boot.js ==== */
