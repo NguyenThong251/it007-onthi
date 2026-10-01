@@ -1902,6 +1902,218 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
   .ide-body{color:#111}
   .ide .t-kw,.ide .t-ty,.ide .t-fn,.ide .t-nu,.ide .t-st,.ide .t-op,.ide .t-pu,.ide .t-vi{color:#111}
 }
+/* ---- 88-anim.css ---- */
+/* ===== 88-anim.css — widget tự chạy cho các giải thuật khó =====
+   Đi cùng src/js/88-anim.js. Mỗi widget là một "máy chạy từng bước": bấm Chạy thì
+   nó tự đi hết kịch bản, mỗi bước tô sáng đúng chỗ đang biến đổi và nói một câu. */
+
+.aw{
+  display:flex; flex-direction:column; gap:0; margin:0;
+  border-radius:14px; overflow:hidden;
+  border:1px solid var(--border-default, #e2e8f0);
+  background:var(--surface-card, #fff);
+  box-shadow:0 2px 10px rgba(40,45,76,.06);
+}
+.aw-h{
+  display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+  padding:11px 13px; background:var(--surface-sunken, #f7f9fc);
+  border-bottom:1px solid var(--border-hairline, #eef1f6);
+}
+.aw-ic{
+  flex:0 0 auto; width:34px; height:34px; border-radius:10px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--surface-accent-soft, #e7f3ff); color:var(--accent, #2275ff); font-size:15px;
+}
+.aw-ttl{flex:1 1 180px; min-width:0; display:flex; flex-direction:column; gap:1px}
+.aw-ttl b{font-size:14px; line-height:1.3; color:var(--text-primary, #282d4c)}
+.aw-ttl em{font-style:normal; font-size:12px; line-height:1.35; color:var(--text-muted, #a0aec0)}
+.aw-ctl{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-left:auto}
+.aw-b{
+  display:inline-flex; align-items:center; gap:6px; min-height:34px; padding:0 13px;
+  border:1px solid var(--border-default, #e2e8f0); border-radius:9px;
+  background:var(--surface-card, #fff); color:var(--text-primary, #282d4c);
+  font:600 12.5px/1 inherit; cursor:pointer; white-space:nowrap;
+  transition:border-color .15s linear, background .15s linear, transform var(--duration-press, .08s) linear;
+}
+.aw-b:hover{border-color:var(--accent, #2275ff); color:var(--accent, #2275ff)}
+.aw-b:active{transform:scale(.95)}
+.aw-b.main{background:var(--accent, #2275ff); border-color:var(--accent, #2275ff); color:#fff}
+.aw-b.main:hover{filter:brightness(1.07); color:#fff}
+.aw-b:disabled{opacity:.45; cursor:default; transform:none}
+.aw-sp{
+  min-height:34px; padding:0 9px; border:1px solid var(--border-default, #e2e8f0);
+  border-radius:9px; background:var(--surface-card, #fff); color:var(--text-body, #5b6484);
+  font:600 12px/1 inherit; cursor:pointer;
+}
+/* chọn kịch bản (vd: quantum 3 / quantum 2, thứ tự đúng / sai) */
+.aw-sc{display:flex; gap:0; border:1px solid var(--border-default, #e2e8f0); border-radius:9px; overflow:hidden}
+.aw-sc button{
+  border:0; background:var(--surface-card, #fff); color:var(--text-body, #5b6484);
+  font:600 12px/1 inherit; padding:0 11px; min-height:34px; cursor:pointer; white-space:nowrap;
+}
+.aw-sc button + button{border-left:1px solid var(--border-hairline, #eef1f6)}
+.aw-sc button[aria-pressed="true"]{background:var(--accent, #2275ff); color:#fff}
+
+.aw-stage{padding:14px 13px; display:flex; flex-direction:column; gap:12px; overflow-x:auto}
+.aw-say{
+  display:flex; align-items:flex-start; gap:9px; padding:10px 13px;
+  border-top:1px solid var(--border-hairline, #eef1f6);
+  background:var(--qd-background-info, #e7f3ff); min-height:52px;
+}
+.aw-say .n{
+  flex:0 0 auto; font:700 11px/1.6 var(--font-mono); color:#fff;
+  background:var(--accent, #2275ff); border-radius:6px; padding:2px 7px;
+}
+.aw-say .s{font-size:13px; line-height:1.55; color:var(--text-primary, #282d4c)}
+.aw-say.done{background:var(--ok-soft, #e6f7ef)}
+.aw-say.done .n{background:var(--qd-success, #15b36b)}
+.aw-say.bad{background:var(--qd-background-error, #ffeceb)}
+.aw-say.bad .n{background:var(--qd-error, #ef4444)}
+.aw-bar{height:3px; background:var(--border-hairline, #eef1f6)}
+.aw-bar i{display:block; height:100%; width:0; background:var(--accent, #2275ff); transition:width .25s linear}
+
+/* ---------- mảnh ghép dùng chung trong vùng vẽ ---------- */
+.aw-row{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start}
+.aw-col{display:flex; flex-direction:column; gap:7px; min-width:0}
+.aw-lab{font:600 10.5px/1.3 inherit; text-transform:uppercase; letter-spacing:.03em; color:var(--text-label, #8a93ad)}
+
+/* ô giá trị (count, S, reg, semaphore…) */
+.aw-var{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  min-width:72px; padding:8px 11px; border-radius:10px;
+  background:var(--surface-sunken, #f7f9fc); border:1px solid var(--border-hairline, #eef1f6);
+}
+.aw-var b{font:700 19px/1.1 var(--font-mono); color:var(--text-primary, #282d4c); font-variant-numeric:tabular-nums}
+.aw-var span{font-size:11px; color:var(--text-muted, #a0aec0)}
+.aw-var.hot{background:var(--surface-accent-soft, #e7f3ff); border-color:var(--accent, #2275ff)}
+.aw-var.hot b{color:var(--accent, #2275ff)}
+.aw-var.bad{background:var(--qd-background-error, #ffeceb); border-color:var(--qd-error, #ef4444)}
+.aw-var.bad b{color:var(--qd-error, #ef4444)}
+.aw-var.ok{background:var(--ok-soft, #e6f7ef); border-color:var(--qd-success, #15b36b)}
+.aw-var.ok b{color:var(--ok-ink, #0e7a4a)}
+
+/* khối mã nhỏ trong widget: cùng bảng màu với khối editor ở 87-code.css */
+.aw-code{
+  flex:1 1 230px; min-width:0; border-radius:10px; overflow:hidden;
+  background:var(--ide-bg, #161a2b); border:1px solid var(--ide-edge, #2b3350);
+}
+.aw-code-h{
+  padding:6px 11px; font:600 11px/1.3 var(--font-mono); color:#8f9ec4;
+  background:var(--ide-bar, #1e2439); border-bottom:1px solid var(--ide-edge, #2b3350);
+  display:flex; align-items:center; gap:7px;
+}
+.aw-code-h .dot{width:7px; height:7px; border-radius:50%; background:#4a5578; flex:0 0 auto}
+.aw-code-h.run .dot{background:#28c840; box-shadow:0 0 0 3px rgba(40,200,64,.2)}
+.aw-code-h.wait .dot{background:#febc2e; box-shadow:0 0 0 3px rgba(254,188,46,.2)}
+.aw-code-h.cs .dot{background:#2275ff; box-shadow:0 0 0 3px rgba(34,117,255,.25)}
+.aw-code ol{margin:0; padding:7px 0; list-style:none; counter-reset:cl}
+.aw-code li{
+  counter-increment:cl; display:flex; gap:10px; padding:2px 11px 2px 0;
+  font:500 12.5px/1.65 var(--font-mono); color:#c9d3f0; white-space:pre-wrap; overflow-wrap:anywhere;
+}
+.aw-code li::before{
+  content:counter(cl); flex:0 0 auto; width:30px; text-align:right; color:#4a5578; user-select:none;
+}
+.aw-code li.on{background:rgba(130,170,255,.16); color:#fff}
+.aw-code li.on::before{color:#82aaff}
+.aw-code li.dim{opacity:.45}
+.aw-code .t-kw{color:#c792ea} .aw-code .t-fn{color:#ffcb6b}
+.aw-code .t-nu{color:#f78c6c} .aw-code .t-op{color:#89ddff} .aw-code .t-pu{color:#7d8bb3}
+
+/* chip tiến trình / hàng đợi */
+.aw-chips{display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-height:30px}
+.aw-chip{
+  display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px;
+  font:600 12px/1.2 inherit; background:var(--surface-sunken, #f7f9fc);
+  border:1px solid var(--border-hairline, #eef1f6); color:var(--text-body, #5b6484);
+}
+.aw-chip.run{background:var(--ok-soft, #e6f7ef); border-color:var(--qd-success, #15b36b); color:var(--ok-ink, #0e7a4a)}
+.aw-chip.cs{background:var(--surface-accent-soft, #e7f3ff); border-color:var(--accent, #2275ff); color:var(--accent-ink, #0b4fc0)}
+.aw-chip.sleep{background:var(--qd-background-warning, #fff6e5); border-color:var(--qd-danger, #f59e0b); color:#8a5a00}
+.aw-chip.done{opacity:.5}
+.aw-empty{font-size:12px; color:var(--text-muted, #a0aec0); font-style:italic}
+
+/* lưới ô: buffer, khung trang, bảng trang */
+.aw-cells{display:flex; gap:6px; flex-wrap:wrap}
+.aw-cell{
+  min-width:44px; height:42px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:9px; border:1px solid var(--border-hairline, #eef1f6);
+  background:var(--surface-sunken, #f7f9fc);
+  font:700 15px/1 var(--font-mono); color:var(--text-primary, #282d4c); font-variant-numeric:tabular-nums;
+  transition:background .18s linear, border-color .18s linear, transform .18s linear;
+}
+.aw-cell.free{color:var(--text-muted, #cbd3e1)}
+.aw-cell.put{background:var(--ok-soft, #e6f7ef); border-color:var(--qd-success, #15b36b); color:var(--ok-ink, #0e7a4a); transform:translateY(-2px)}
+.aw-cell.hit{background:var(--surface-accent-soft, #e7f3ff); border-color:var(--accent, #2275ff); color:var(--accent-ink, #0b4fc0)}
+.aw-cell.kill{background:var(--qd-background-error, #ffeceb); border-color:var(--qd-error, #ef4444); color:var(--qd-error, #ef4444)}
+
+/* dãy chuỗi tham chiếu có con trỏ chạy */
+.aw-seq{display:flex; gap:4px; flex-wrap:wrap}
+.aw-seq span{
+  min-width:28px; height:30px; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:7px; background:var(--surface-sunken, #f7f9fc); color:var(--text-body, #5b6484);
+  font:600 13px/1 var(--font-mono); font-variant-numeric:tabular-nums;
+}
+.aw-seq span.past{opacity:.45}
+.aw-seq span.now{background:var(--accent, #2275ff); color:#fff; transform:scale(1.1)}
+.aw-seq span.flt{box-shadow:inset 0 -3px 0 var(--qd-error, #ef4444)}
+
+/* bảng nhỏ (bảng trang, bảng thời gian) */
+.aw-tb{border-collapse:collapse; font-size:12.5px; min-width:0}
+.aw-tb th, .aw-tb td{
+  padding:5px 11px; border:1px solid var(--border-hairline, #eef1f6); text-align:center;
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.aw-tb th{background:var(--surface-sunken, #f7f9fc); font-weight:600; color:var(--text-label, #8a93ad); font-size:11px; text-transform:uppercase}
+.aw-tb td.on{background:var(--surface-accent-soft, #e7f3ff); color:var(--accent-ink, #0b4fc0); font-weight:700}
+.aw-tb tr.on td{background:var(--surface-accent-soft, #e7f3ff)}
+.aw-tb td.ok{background:var(--ok-soft, #e6f7ef); color:var(--ok-ink, #0e7a4a); font-weight:700}
+
+/* băng địa chỉ: phần trang | phần offset */
+.aw-addr{display:flex; align-items:stretch; gap:0; border-radius:9px; overflow:hidden; border:1px solid var(--border-hairline, #eef1f6); max-width:100%}
+.aw-addr div{padding:7px 13px; display:flex; flex-direction:column; gap:2px; align-items:center; min-width:84px}
+.aw-addr div b{font:700 16px/1.1 var(--font-mono); font-variant-numeric:tabular-nums}
+.aw-addr div span{font-size:10.5px; text-transform:uppercase; letter-spacing:.03em}
+.aw-addr .p{background:var(--surface-accent-soft, #e7f3ff); color:var(--accent-ink, #0b4fc0)}
+.aw-addr .d{background:var(--qd-background-warning, #fff6e5); color:#8a5a00}
+.aw-addr .r{background:var(--ok-soft, #e6f7ef); color:var(--ok-ink, #0e7a4a)}
+.aw-addr .q{background:var(--surface-sunken, #f7f9fc); color:var(--text-muted, #a0aec0)}
+
+/* sơ đồ luồng TLB */
+.aw-flow{display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.aw-node{
+  padding:8px 13px; border-radius:10px; border:1px dashed var(--border-strong, #cbd3e1);
+  background:var(--surface-card, #fff); color:var(--text-body, #5b6484);
+  font:600 12.5px/1.3 inherit; text-align:center; white-space:nowrap;
+}
+.aw-node small{display:block; font-weight:500; font-size:10.5px; color:var(--text-muted, #a0aec0)}
+.aw-node.on{border-style:solid; border-color:var(--accent, #2275ff); background:var(--surface-accent-soft, #e7f3ff); color:var(--accent-ink, #0b4fc0)}
+.aw-node.ok{border-style:solid; border-color:var(--qd-success, #15b36b); background:var(--ok-soft, #e6f7ef); color:var(--ok-ink, #0e7a4a)}
+.aw-node.bad{border-style:solid; border-color:var(--qd-error, #ef4444); background:var(--qd-background-error, #ffeceb); color:var(--qd-error, #ef4444)}
+.aw-arr{color:var(--text-muted, #cbd3e1); font-size:14px; flex:0 0 auto}
+.aw-arr.on{color:var(--accent, #2275ff)}
+
+.aw-note{font-size:12px; line-height:1.5; color:var(--text-body, #5b6484)}
+.aw-sum{
+  display:inline-flex; align-items:center; gap:7px; align-self:flex-start;
+  padding:6px 12px; border-radius:9px; background:var(--ok-soft, #e6f7ef);
+  color:var(--ok-ink, #0e7a4a); font:600 13px/1.3 inherit;
+}
+.aw-sum.bad{background:var(--qd-background-error, #ffeceb); color:var(--qd-error, #ef4444)}
+
+@media (max-width:720px){
+  .aw-h{padding:10px 11px; gap:9px}
+  .aw-ctl{width:100%; margin-left:0}
+  .aw-b, .aw-sp, .aw-sc button{min-height:38px}
+  .aw-b{flex:1 1 auto; justify-content:center}
+  .aw-stage{padding:12px 11px}
+  .aw-code li{font-size:12px}
+  .aw-cell{min-width:40px; height:38px; font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .aw-cell, .aw-seq span, .aw-bar i{transition:none}
+}
+@media print{ .aw-ctl{display:none} }
 </style>
 
 <div class="wrap">
@@ -4962,6 +5174,8 @@ APP.views.exam = {
     return out;
   }
 
+  APP.tôMã = tô;          /* 88-anim.js dùng lại để khối mã trong widget cùng một bảng màu */
+
   /* cắt một biểu thức dài thành nhiều dòng cho dễ đọc:
      ngắt ở chỗ thụt 3 khoảng trắng trở lên, và ở dấu ; nằm NGOÀI ngoặc nhọn */
   function cắtDòng(src) {
@@ -5045,7 +5259,7 @@ APP.views.exam = {
      ========================================================= */
   /* nhãn, tiêu đề, nút: đã in hoa / đã có kiểu riêng, bọc mã vào đó chỉ tổ rối */
   const BỎ = 'code,pre,.ide,.eye,.qv,script,style,textarea,input,select,button,.qsel-menu,#lightbox,.pet-panel,'
-    + '.qd-thumb,.lb-cap,.ide-bar,.tc-fn,.fn,.qd-eyebrow,.tc-t,.qd-card-t,.qd-chip,.badge,h1,h2,h3,h4,th,summary';
+    + '.qd-thumb,.lb-cap,.ide-bar,.tc-fn,.fn,.qd-eyebrow,.tc-t,.qd-card-t,.qd-chip,.badge,h1,h2,h3,h4,th,summary,.aw';
 
   function nângBiểuThức(gốc) {
     gốc.querySelectorAll('.tc-fe:not([data-k]),.fe:not([data-k])').forEach(el => {
@@ -5251,9 +5465,455 @@ APP.views.exam = {
     const ob = new MutationObserver(ms => {
       if (đangChạy) return;
       let đáng = false;
-      for (const m of ms) { if (m.type === 'childList' && m.addedNodes.length) { đáng = true; break; } }
+      for (const m of ms) {
+        if (m.type !== 'childList' || !m.addedNodes.length) continue;
+        const t = m.target;
+        if (t && t.closest && t.closest('.aw')) continue;   /* widget tự chạy đổi khung liên tục, bỏ qua */
+        đáng = true; break;
+      }
       if (!đáng || hẹn) return;
       hẹn = setTimeout(() => { hẹn = 0; ob.disconnect(); quét(document.body); ob.observe(document.body, { childList: true, subtree: true }); }, 60);
+    });
+    ob.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bắtĐầu);
+  else bắtĐầu();
+})();
+
+/* ==== 88-anim.js ==== */
+/* ===== 88-anim.js — widget tự chạy cho 7 giải thuật khó nhất của đề =====
+   Mỗi widget là một kịch bản gồm nhiều BƯỚC. Mỗi bước vẽ lại toàn bộ vùng sân khấu
+   và nói một câu: nhìn thấy con số đổi ở đâu, vì sao nó đổi. Bấm Chạy thì nó tự đi
+   hết, hoặc bấm Bước để đi tay. Số liệu lấy đúng ví dụ thầy chữa trên lớp / trong đề,
+   để xem xong là nhớ luôn bài thật chứ không phải một ví dụ lạ.
+   Không sửa 00-core.js: chỉ dùng esc/icon có sẵn rồi chèn widget vào thẻ chủ đề. */
+(function () {
+  if (typeof document === 'undefined') return;
+
+  /* ---------------- mảnh ghép dựng HTML ---------------- */
+  const E = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const vr = (ten, val, cls) => '<div class="aw-var ' + (cls || '') + '"><b>' + E(val) + '</b><span>' + E(ten) + '</span></div>';
+  const lab = t => '<div class="aw-lab">' + E(t) + '</div>';
+  const chip = (t, cls) => '<span class="aw-chip ' + (cls || '') + '">' + E(t) + '</span>';
+  const sum = (t, bad) => '<div class="aw-sum' + (bad ? ' bad' : '') + '">' + (bad ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-circle-check"></i>') + E(t) + '</div>';
+  const note = t => '<p class="aw-note">' + t + '</p>';
+  /* tô màu mã: mượn bộ quét token của 87-code.js.
+     KHÔNG tự chắp bằng chuỗi replace — replace toán tử chạy sau sẽ ăn cả dấu < > = của
+     mấy thẻ <span> vừa chèn, làm vỡ hết chữ (đã vấp đúng lỗi này một lần). */
+  const cd = s => (APP && typeof APP.tôMã === 'function') ? APP.tôMã(s) : E(s);
+  function khốiMã(tên, trạng, dòng, chỉSố) {
+    const t = trạng === 'run' ? 'run' : trạng === 'wait' ? 'wait' : trạng === 'cs' ? 'cs' : '';
+    return '<div class="aw-code"><div class="aw-code-h ' + t + '"><span class="dot"></span>' + E(tên) + '</div><ol>'
+      + dòng.map((d, i) => '<li class="' + (i === chỉSố ? 'on' : (chỉSố != null && i < chỉSố ? 'dim' : '')) + '">' + cd(d) + '</li>').join('')
+      + '</ol></div>';
+  }
+  const ô = (v, cls) => '<span class="aw-cell ' + (cls || '') + '">' + E(v) + '</span>';
+  function dãy(seq, i, lỗi) {
+    return '<div class="aw-seq">' + seq.map((v, k) =>
+      '<span class="' + (k === i ? 'now' : k < i ? 'past' : '') + (lỗi && lỗi.has(k) ? ' flt' : '') + '">' + E(v) + '</span>').join('') + '</div>';
+  }
+  const mũi = on => '<span class="aw-arr' + (on ? ' on' : '') + '"><i class="fa-solid fa-chevron-right"></i></span>';
+  const nút = (t, dưới, cls) => '<div class="aw-node ' + (cls || '') + '">' + E(t) + (dưới ? '<small>' + E(dưới) + '</small>' : '') + '</div>';
+
+  /* =========================================================
+     1. RACE CONDITION — count++ và count-- cắt ngang nhau
+     ========================================================= */
+  const MÃ_P = ['reg1 = count', 'reg1 = reg1 + 1', 'count = reg1'];
+  const MÃ_C = ['reg2 = count', 'reg2 = reg2 - 1', 'count = reg2'];
+  function vẽRace(st) {
+    return '<div class="aw-row">'
+      + vr('count', st.count, st.hot === 'count' ? 'hot' : (st.sai ? 'bad' : (st.xong ? 'ok' : '')))
+      + vr('reg1 (P)', st.r1 == null ? '–' : st.r1, st.hot === 'r1' ? 'hot' : '')
+      + vr('reg2 (C)', st.r2 == null ? '–' : st.r2, st.hot === 'r2' ? 'hot' : '')
+      + '</div><div class="aw-row">'
+      + khốiMã('Producer — count++', st.ai === 'P' ? 'run' : '', MÃ_P, st.ai === 'P' ? st.pc : null)
+      + khốiMã('Consumer — count--', st.ai === 'C' ? 'run' : '', MÃ_C, st.ai === 'C' ? st.cc : null)
+      + '</div>' + (st.kết || '');
+  }
+  function kịchRace(q) {
+    const b = [], đẩy = (st, say, tone) => b.push({ html: vẽRace(st), say: say, tone: tone });
+    đẩy({ count: 5, r1: null, r2: null, hot: 'count' }, 'Đầu bài của thầy: <b>count = 5</b>. Producer chạy <b>count++</b>, Consumer chạy <b>count--</b>. Mỗi lệnh cộng/trừ thật ra là <b>3 lệnh máy</b>: đọc → tính → ghi.');
+    if (q === 3) {
+      đẩy({ count: 5, r1: 5, r2: null, ai: 'P', pc: 0, hot: 'r1' }, 'P lệnh 1: <b>reg1 = count = 5</b>. Quantum 3 nên P được chạy trọn 3 lệnh.');
+      đẩy({ count: 5, r1: 6, r2: null, ai: 'P', pc: 1, hot: 'r1' }, 'P lệnh 2: <b>reg1 = 6</b>. Mới chỉ tăng trong thanh ghi, count vẫn 5.');
+      đẩy({ count: 6, r1: 6, r2: null, ai: 'P', pc: 2, hot: 'count' }, 'P lệnh 3: <b>count = reg1 = 6</b>. P đã ghi xong rồi mới hết quantum.');
+      đẩy({ count: 6, r1: 6, r2: 6, ai: 'C', cc: 0, hot: 'r2' }, 'Tới lượt C: <b>reg2 = count = 6</b> — đọc được số MỚI, vì P đã kịp ghi.');
+      đẩy({ count: 6, r1: 6, r2: 5, ai: 'C', cc: 1, hot: 'r2' }, 'C: <b>reg2 = 5</b>.');
+      đẩy({ count: 5, r1: 6, r2: 5, ai: 'C', cc: 2, hot: 'count', xong: 1, kết: sum('count = 5 — đúng. Không ai đọc đè lên ai.') }, 'C ghi: <b>count = 5</b>. Chạy trọn vẹn từng bên thì kết quả đúng.', 'done');
+    } else {
+      đẩy({ count: 5, r1: 5, r2: null, ai: 'P', pc: 0, hot: 'r1' }, 'P lệnh 1: <b>reg1 = count = 5</b>.');
+      đẩy({ count: 5, r1: 6, r2: null, ai: 'P', pc: 1, hot: 'r1' }, 'P lệnh 2: <b>reg1 = 6</b>. Hết quantum (2 lệnh) — P bị <b>cắt ngang khi CHƯA ghi</b>.');
+      đẩy({ count: 5, r1: 6, r2: 5, ai: 'C', cc: 0, hot: 'r2' }, 'C lệnh 1: <b>reg2 = count = 5</b>. Đây là chỗ hỏng: C đọc <b>giá trị cũ</b>, số 6 còn nằm trong thanh ghi của P.');
+      đẩy({ count: 5, r1: 6, r2: 4, ai: 'C', cc: 1, hot: 'r2' }, 'C lệnh 2: <b>reg2 = 4</b>. Hết quantum của C.');
+      đẩy({ count: 6, r1: 6, r2: 4, ai: 'P', pc: 2, hot: 'count' }, 'P chạy nốt: <b>count = reg1 = 6</b>.');
+      đẩy({ count: 4, r1: 6, r2: 4, ai: 'C', cc: 2, hot: 'count', sai: 1, kết: sum('count = 4 — SAI. Đúng phải là 5.', true) }, 'C chạy nốt: <b>count = reg2 = 4</b>, <b>ghi đè</b> lên số 6 vừa nãy. Một lần tăng bị mất trắng — đó chính là <b>race condition</b>.', 'bad');
+    }
+    b.push({ html: vẽRace({ count: q === 3 ? 5 : 4, r1: 6, r2: q === 3 ? 5 : 4, xong: q === 3, sai: q !== 3, kết: note('Kết quả cuối phụ thuộc <b>thứ tự thực thi</b>, không phụ thuộc thứ tự lập lịch mình mong muốn. Với count = 5 thì kết quả có thể là <b>4, 5 hoặc 6</b> — chỉ 5 là đúng.') }), say: q === 3 ? 'Nhớ: quantum đủ lớn chỉ là <b>may</b>, không phải giải pháp. Thử lại với quantum = 2 để thấy nó hỏng.' : 'Nhớ: hậu quả của race condition là <b>dữ liệu không nhất quán</b> — KHÔNG phải deadlock. Đây là bẫy hay ra nhất Chương 5.', tone: q === 3 ? 'done' : 'bad' });
+    return b;
+  }
+
+  /* =========================================================
+     2. PETERSON — hai tiến trình nhường nhau
+     ========================================================= */
+  const MÃ_PT = i => ['flag[' + i + '] = true', 'turn = ' + (1 - i), 'while (flag[' + (1 - i) + '] && turn == ' + (1 - i) + ') ;', '— CRITICAL SECTION —', 'flag[' + i + '] = false'];
+  function vẽPt(st) {
+    return '<div class="aw-row">'
+      + vr('flag[0]', st.f0 ? 'true' : 'false', st.hot === 'f0' ? 'hot' : (st.f0 ? 'ok' : ''))
+      + vr('flag[1]', st.f1 ? 'true' : 'false', st.hot === 'f1' ? 'hot' : (st.f1 ? 'ok' : ''))
+      + vr('turn', st.turn == null ? '–' : st.turn, st.hot === 'turn' ? 'hot' : '')
+      + '</div><div class="aw-row">'
+      + khốiMã('P0', st.s0 || '', MÃ_PT(0), st.l0)
+      + khốiMã('P1', st.s1 || '', MÃ_PT(1), st.l1)
+      + '</div>' + (st.kết || '');
+  }
+  function kịchPeterson() {
+    const b = [], đẩy = (st, say, tone) => b.push({ html: vẽPt(st), say: say, tone: tone });
+    đẩy({ f0: 0, f1: 0, turn: null }, 'Peterson chỉ dùng cho <b>đúng 2 tiến trình</b> và chỉ cần 2 biến dùng chung: mảng <b>flag</b> (tôi muốn vào) và <b>turn</b> (tới lượt ai).');
+    đẩy({ f0: 1, f1: 0, turn: null, l0: 0, s0: 'run', hot: 'f0' }, 'P0: <b>flag[0] = true</b> — tôi muốn vào.');
+    đẩy({ f0: 1, f1: 1, turn: null, l1: 0, s1: 'run', hot: 'f1' }, 'P1 cũng vậy: <b>flag[1] = true</b>. Cả hai cùng muốn vào.');
+    đẩy({ f0: 1, f1: 1, turn: 1, l0: 1, s0: 'run', hot: 'turn' }, 'P0: <b>turn = 1</b> — nhường lượt cho đối phương. Đây là mẹo của Peterson: ai cũng <b>nhường</b> trước.');
+    đẩy({ f0: 1, f1: 1, turn: 0, l1: 1, s1: 'run', hot: 'turn' }, 'P1: <b>turn = 0</b>. P1 gán <b>sau cùng</b> nên turn đọng lại ở 0 — và chính cái đó quyết định ai thắng.');
+    đẩy({ f0: 1, f1: 1, turn: 0, l0: 2, s0: 'run' }, 'P0 kiểm tra <b>flag[1] && turn == 1</b> → true && <b>false</b> = false. Điều kiện chờ sai, P0 <b>không phải chờ</b>.');
+    đẩy({ f0: 1, f1: 1, turn: 0, l0: 3, s0: 'cs', l1: 2, s1: 'wait' }, '<b>P0 vào CS.</b> P1 kiểm tra <b>flag[0] && turn == 0</b> → true && true = true, nên <b>P1 phải chờ</b>. Hai bên không bao giờ cùng vào — đó là <b>mutual exclusion</b>.');
+    đẩy({ f0: 0, f1: 1, turn: 0, l0: 4, s0: 'run', l1: 2, s1: 'wait', hot: 'f0' }, 'P0 xong việc, ra khỏi CS: <b>flag[0] = false</b>.');
+    đẩy({ f0: 0, f1: 1, turn: 0, l1: 3, s1: 'cs', kết: sum('P0 vào trước, P1 chờ đúng 1 lượt — bounded waiting.') }, 'Điều kiện chờ của P1 thành sai ngay, <b>P1 vào CS</b>. P1 chỉ phải chờ <b>đúng một lượt</b>, không bị bỏ đói.', 'done');
+    b.push({ html: vẽPt({ f0: 0, f1: 0, turn: 0, kết: note('Đủ cả 3 yêu cầu: <b>mutual exclusion</b>, <b>progress</b>, <b>bounded waiting</b>. Nhưng Peterson là <b>giải pháp phần mềm</b>, có <b>busy waiting</b>, và <b>chỉ cho 2 tiến trình</b> — câu 28 CITD bắt đúng chỗ này: phương án “áp dụng cho n tiến trình” là SAI.') }), say: 'Ba điều phải thuộc: chỉ 2 tiến trình · còn busy waiting · hiện đại có thể hỏng vì CPU <b>đảo thứ tự lệnh</b>.', tone: 'done' });
+    return b;
+  }
+
+  /* =========================================================
+     3. SEMAPHORE — wait/signal, giá trị âm và hàng đợi
+     ========================================================= */
+  function vẽSem(st) {
+    const q = st.q.length ? st.q.map(x => chip(x, 'sleep')).join('') : '<span class="aw-empty">rỗng</span>';
+    return '<div class="aw-row">'
+      + vr('S.value', st.S, st.hot ? 'hot' : (st.S < 0 ? 'bad' : ''))
+      + '<div class="aw-col" style="flex:1 1 200px">' + lab('Hàng đợi S.list — các tiến trình đang ngủ') + '<div class="aw-chips">' + q + '</div></div>'
+      + '</div><div class="aw-col">' + lab('Ba tiến trình') + '<div class="aw-chips">'
+      + ['A', 'B', 'C'].map(x => chip(x + (st.tt[x] ? ' · ' + st.tt[x] : ''), st.cls[x] || '')).join('') + '</div></div>'
+      + '<div class="aw-row">' + khốiMã('wait(S) — bản không busy waiting', '', ['S.value = S.value - 1', 'if (S.value < 0) {', '   thêm tiến trình vào S.list', '   block()', '}'], st.w)
+      + khốiMã('signal(S)', '', ['S.value = S.value + 1', 'if (S.value <= 0) {', '   lấy P ra khỏi S.list', '   wakeup(P)', '}'], st.g) + '</div>'
+      + (st.kết || '');
+  }
+  function kịchSem() {
+    const b = [];
+    const S = (s, q, tt, cls, say, o) => b.push({ html: vẽSem(Object.assign({ S: s, q: q, tt: tt, cls: cls }, o || {})), say: say, tone: o && o.tone });
+    S(1, [], {}, {}, 'Bảng chạy tay trên slide §5.7.3: <b>S khởi tạo bằng 1</b>. Ba tiến trình A, B, C lần lượt gọi <b>wait(S)</b> để xin vào vùng tranh chấp.', { hot: 1 });
+    S(0, [], { A: 'trong CS' }, { A: 'cs' }, 'A gọi <b>wait</b>: S = 1 − 1 = <b>0</b>. Không âm nên A <b>không bị block</b>, A vào CS.', { w: 0, hot: 1 });
+    S(-1, ['B'], { A: 'trong CS', B: 'ngủ' }, { A: 'cs', B: 'sleep' }, 'B gọi <b>wait</b>: S = <b>−1 &lt; 0</b> nên B bị <b>block</b>, xếp vào hàng đợi.', { w: 3, hot: 1 });
+    S(-2, ['B', 'C'], { A: 'trong CS', B: 'ngủ', C: 'ngủ' }, { A: 'cs', B: 'sleep', C: 'sleep' }, 'C gọi <b>wait</b>: S = <b>−2</b>, C cũng ngủ. Nhớ cái này: <b>|−2| = 2</b> đúng bằng số tiến trình đang chờ.', { w: 3, hot: 1 });
+    S(-1, ['C'], { A: 'xong', B: 'trong CS', C: 'ngủ' }, { A: 'done', B: 'cs', C: 'sleep' }, 'A ra khỏi CS, gọi <b>signal</b>: S = −2 + 1 = <b>−1 ≤ 0</b> nên phải <b>đánh thức B</b>. B rời hàng đợi, vào CS.', { g: 3, hot: 1 });
+    S(0, [], { A: 'xong', B: 'xong', C: 'trong CS' }, { A: 'done', B: 'done', C: 'cs' }, 'B ra, gọi <b>signal</b>: S = <b>0 ≤ 0</b> — vẫn còn người chờ nên <b>đánh thức C</b>. Hàng đợi rỗng.', { g: 3, hot: 1 });
+    S(1, [], { A: 'xong', B: 'xong', C: 'xong' }, { A: 'done', B: 'done', C: 'done' }, 'C ra, gọi <b>signal</b>: S = <b>1 &gt; 0</b> nên <b>không có ai để đánh thức</b>. Xong một vòng.', { g: 0, hot: 1, tone: 'done', kết: sum('Chuỗi giá trị của S: 1 → 0 → −1 → −2 → −1 → 0 → 1') });
+    b.push({ html: vẽSem({ S: 1, q: [], tt: {}, cls: {}, kết: note('Hai câu đề hỏi thẳng ý nghĩa con số: <b>S = 5</b> ⇒ còn gọi <b>wait được 5 lần</b> không bị block, lần thứ 6 mới block (câu 23 CITD). <b>S = −4</b> ⇒ có <b>4 tiến trình đang bị chặn</b> trong hàng đợi (câu 18 HK II).') }), say: 'Công thức để nhớ: <b>S = n ≥ 0</b> → còn n lần wait không bị chặn · <b>S = −k &lt; 0</b> → có k tiến trình đang ngủ.', tone: 'done' });
+    return b;
+  }
+
+  /* =========================================================
+     4. BOUNDED BUFFER — sai thứ tự wait là deadlock
+     ========================================================= */
+  function vẽBB(st) {
+    return '<div class="aw-row">'
+      + vr('empty', st.e, st.hot === 'e' ? 'hot' : (st.e < 0 ? 'bad' : ''))
+      + vr('full', st.f, st.hot === 'f' ? 'hot' : '')
+      + vr('mutex', st.m, st.hot === 'm' ? 'hot' : (st.m < 0 ? 'bad' : ''))
+      + '<div class="aw-col">' + lab('Buffer (n = 2)') + '<div class="aw-cells">'
+      + [0, 1].map(i => ô(st.buf[i] == null ? '·' : st.buf[i], st.buf[i] == null ? 'free' : 'put')).join('') + '</div></div>'
+      + '</div><div class="aw-col">' + lab('Trạng thái') + '<div class="aw-chips">'
+      + chip('Producer · ' + st.tp, st.cp) + chip('Consumer · ' + st.tc, st.cc) + '</div></div>'
+      + '<div class="aw-row">'
+      + khốiMã(st.sai ? 'Producer — THỨ TỰ SAI' : 'Producer — thứ tự đúng', '', st.sai
+        ? ['wait(mutex)', 'wait(empty)', 'thêm vào buffer', 'signal(mutex)', 'signal(full)']
+        : ['wait(empty)', 'wait(mutex)', 'thêm vào buffer', 'signal(mutex)', 'signal(full)'], st.lp)
+      + khốiMã('Consumer', '', ['wait(full)', 'wait(mutex)', 'lấy khỏi buffer', 'signal(mutex)', 'signal(empty)'], st.lc)
+      + '</div>' + (st.kết || '');
+  }
+  function kịchBB(sai) {
+    const b = [], đ = (st, say, tone) => b.push({ html: vẽBB(Object.assign({ sai: sai }, st)), say: say, tone: tone });
+    const nền = { e: 0, f: 2, m: 1, buf: ['m1', 'm2'], tp: 'muốn bỏ món thứ 3', tc: 'muốn lấy hàng', cp: '', cc: '' };
+    đ(Object.assign({}, nền), 'Buffer <b>n = 2</b> và đang <b>đầy</b>: empty = 0, full = 2, mutex = 1. Producer muốn bỏ thêm món thứ 3, ngay sau đó Consumer muốn lấy hàng.');
+    if (sai) {
+      đ(Object.assign({}, nền, { m: 0, lp: 0, hot: 'm', cp: 'run', tp: 'đang GIỮ khóa' }), 'Producer gọi <b>wait(mutex)</b> trước: mutex = <b>0</b>. Producer đã <b>cầm khóa</b> trong tay.');
+      đ(Object.assign({}, nền, { m: 0, e: -1, lp: 1, hot: 'e', cp: 'sleep', tp: 'NGỦ mà vẫn giữ khóa' }), 'Rồi mới <b>wait(empty)</b>: empty = <b>−1</b> nên Producer <b>đi ngủ</b> — nhưng nó <b>vẫn đang giữ mutex</b>. Đây là mầm chết.');
+      đ(Object.assign({}, nền, { m: 0, e: -1, f: 1, lc: 0, hot: 'f', cp: 'sleep', tp: 'ngủ, giữ khóa', cc: 'run', tc: 'qua được wait(full)' }), 'Consumer gọi <b>wait(full)</b>: full = <b>1</b>, còn hàng nên đi tiếp bình thường.');
+      đ(Object.assign({}, nền, { m: -1, e: -1, f: 1, lc: 1, hot: 'm', cp: 'sleep', tp: 'ngủ, giữ khóa', cc: 'sleep', tc: 'NGỦ chờ khóa' }), 'Consumer gọi <b>wait(mutex)</b>: mutex = <b>−1</b> nên Consumer cũng <b>đi ngủ</b> — vì khóa đang nằm trong tay thằng đang ngủ.');
+      đ(Object.assign({}, nền, { m: -1, e: -1, f: 1, cp: 'sleep', tp: 'chờ signal(empty)', cc: 'sleep', tc: 'chờ signal(mutex)', kết: sum('DEADLOCK — mutex = −1, empty = −1, cả hai cùng ngủ.', true) }), 'Producer chờ Consumer gọi <b>signal(empty)</b>; Consumer chờ Producer gọi <b>signal(mutex)</b>. <b>Chờ nhau mãi mãi</b> — đúng định nghĩa deadlock.', 'bad');
+    } else {
+      đ(Object.assign({}, nền, { e: -1, lp: 0, hot: 'e', cp: 'sleep', tp: 'NGỦ, KHÔNG giữ khóa' }), 'Producer gọi <b>wait(empty)</b> trước: empty = <b>−1</b>, Producer đi ngủ — nhưng <b>chưa hề đụng tới mutex</b>. Khóa vẫn tự do.');
+      đ(Object.assign({}, nền, { e: -1, f: 1, lc: 0, hot: 'f', cp: 'sleep', tp: 'ngủ', cc: 'run', tc: 'qua wait(full)' }), 'Consumer: <b>wait(full)</b> → full = <b>1</b>, đi tiếp.');
+      đ(Object.assign({}, nền, { e: -1, f: 1, m: 0, lc: 1, hot: 'm', cp: 'sleep', tp: 'ngủ', cc: 'cs', tc: 'lấy được khóa' }), 'Consumer: <b>wait(mutex)</b> → mutex = <b>0</b>. Lấy được khóa vì không ai giữ.');
+      đ(Object.assign({}, nền, { e: -1, f: 1, m: 0, buf: ['m1', null], lc: 2, cp: 'sleep', tp: 'ngủ', cc: 'cs', tc: 'đang lấy hàng' }), 'Consumer lấy một món ra khỏi buffer.');
+      đ(Object.assign({}, nền, { e: -1, f: 1, m: 1, buf: ['m1', null], lc: 3, hot: 'm', cp: 'sleep', tp: 'ngủ', cc: 'run', tc: 'trả khóa' }), 'Consumer: <b>signal(mutex)</b> → mutex = <b>1</b>, trả khóa lại.');
+      đ(Object.assign({}, nền, { e: 0, f: 1, m: 1, buf: ['m1', null], lc: 4, hot: 'e', cp: 'run', tp: 'ĐƯỢC ĐÁNH THỨC', cc: 'done', tc: 'xong', kết: sum('Không kẹt: Consumer đánh thức được Producer.') }), 'Consumer: <b>signal(empty)</b> → empty = <b>0 ≤ 0</b> nên <b>đánh thức Producer</b>. Producer dậy, bỏ món thứ 3 vào ô vừa trống.', 'done');
+    }
+    b.push({ html: vẽBB(Object.assign({}, nền, { e: sai ? -1 : 0, m: sai ? -1 : 1, f: 1, kết: note('Luật rút ra, nhớ một câu là đủ: <b>semaphore đếm (empty/full) phải wait TRƯỚC, mutex wait SAU</b>. Ngủ trong khi đang giữ khóa là tự khóa cả hệ thống.') })), say: sai ? 'Bấm “Thứ tự đúng” ở trên để thấy cùng tình huống đó nhưng không kẹt.' : 'Ngược lại, bấm “Thứ tự sai” để thấy chỉ đảo hai dòng là chết cả hệ thống.', tone: sai ? 'bad' : 'done' });
+    return b;
+  }
+
+  /* =========================================================
+     5. ĐỔI ĐỊA CHỈ QUA BẢNG TRANG — câu 24 CITD
+     ========================================================= */
+  function bảngTrang(map, hl, cột) {
+    return '<table class="aw-tb"><thead><tr><th>Trang p</th><th>Khung f</th></tr></thead><tbody>'
+      + map.map((f, p) => '<tr class="' + (hl === p ? 'on' : '') + '"><td class="' + (hl === p && cột !== 'f' ? 'on' : '') + '">' + p + '</td><td class="' + (hl === p ? 'ok' : '') + '">' + f + '</td></tr>').join('')
+      + '</tbody></table>';
+  }
+  function vẽAddr(st) {
+    return '<div class="aw-col">' + lab(st.labAddr) + '<div class="aw-addr">'
+      + (st.tách
+        ? '<div class="p"><b>' + st.p + '</b><span>' + st.tênP + '</span></div><div class="d"><b>' + st.d + '</b><span>offset d</span></div>'
+        : '<div class="q"><b>' + st.addr + '</b><span>chưa tách</span></div>')
+      + '</div></div>'
+      + '<div class="aw-row"><div class="aw-col">' + lab('Bảng trang') + bảngTrang(st.map, st.hl) + '</div>'
+      + '<div class="aw-col" style="flex:1 1 240px">' + lab('Phép tính') + (st.tính || note('<i>Chờ bước sau…</i>')) + (st.kết || '') + '</div></div>';
+  }
+  function kịchAddr(ngược) {
+    const b = [], đ = (st, say, tone) => b.push({ html: vẽAddr(st), say: say, tone: tone });
+    if (!ngược) {
+      const map = [4, 7, 9, 5, 6], S = 1024;
+      const nền = { labAddr: 'Địa chỉ LUẬN LÝ', addr: 2555, map: map, tênP: 'số trang p' };
+      đ(Object.assign({}, nền), 'Câu 24 đề CITD: trang 0–4 nạp vào khung <b>4, 7, 9, 5, 6</b>; khung <b>1024 byte</b>. Hỏi địa chỉ luận lý <b>2555</b> ra địa chỉ vật lý nào?');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 507, tính: note('<b>2555 ÷ 1024 = 2 dư 507</b><br>2 × 1024 = 2048 · 2555 − 2048 = 507') }), 'Bước 1 — <b>tách</b>: chia địa chỉ cho kích thước trang. Thương là <b>p = 2</b>, dư là <b>d = 507</b>.');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 507, hl: 2, tính: note('Đếm từ <b>trang 0</b>: 0→4, 1→7, <b>2→9</b>') }), 'Bước 2 — <b>tra bảng</b>. Đếm từ trang 0 chứ không phải trang 1: trang <b>2</b> nằm ở khung <b>f = 9</b>. Đếm lệch một dòng là mất điểm.');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 507, hl: 2, tính: note('<b>PA = f × S + d</b><br>= 9 × 1024 + 507<br>= 9216 + 507'), kết: sum('PA = 9723 — đáp án D') }), 'Bước 3 — <b>ghép</b>: lấy số khung nhân kích thước rồi cộng offset. <b>Offset d giữ nguyên</b>, không bao giờ đổi.', 'done');
+      b.push({ html: vẽAddr(Object.assign({}, nền, { tách: 1, p: 2, d: 507, hl: 2, kết: note('Ba bước, lúc nào cũng vậy: <b>chia lấy thương và dư → tra bảng đổi thương → nhân lại cộng dư</b>. Phần dư d đi thẳng từ đầu tới cuối.') })), say: 'Bấm “Chiều ngược” để làm bài ngược lại: cho địa chỉ vật lý, tìm địa chỉ luận lý.', tone: 'done' });
+    } else {
+      const map = [4, 8, 1, 2, 9, 3];
+      const nền = { labAddr: 'Địa chỉ VẬT LÝ', addr: 2099, map: map, tênP: 'số khung f' };
+      đ(Object.assign({}, nền), 'Câu 2 tiểu kết Ch7: bảng trang <b>0→4, 1→8, 2→1, 3→2, 4→9, 5→3</b>, khung <b>1 KB</b>. Địa chỉ vật lý <b>2099</b> là ánh xạ của địa chỉ luận lý nào?');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 51, tính: note('<b>2099 ÷ 1024 = 2 dư 51</b>') }), 'Bước 1 — tách y hệt, nhưng thương bây giờ là <b>số khung f = 2</b>, không phải số trang.');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 51, hl: 3, tính: note('Dò <b>cột khung</b>: 4, 8, 1, <b>2</b>, 9, 3<br>số 2 nằm ở dòng <b>trang 3</b>') }), 'Bước 2 — <b>tra ngược</b>: lần này dò trong <b>cột khung</b> để tìm số 2, rồi nhìn sang xem nó ở dòng trang mấy ⇒ <b>p = 3</b>.');
+      đ(Object.assign({}, nền, { tách: 1, p: 2, d: 51, hl: 3, tính: note('<b>LA = p × S + d</b><br>= 3 × 1024 + 51<br>= 3072 + 51'), kết: sum('LA = 3123') }), 'Bước 3 — ghép: <b>3 × 1024 + 51 = 3123</b>.', 'done');
+      b.push({ html: vẽAddr(Object.assign({}, nền, { tách: 1, p: 2, d: 51, hl: 3, kết: note('Thử lại cho chắc: 3123 ÷ 1024 = 3 dư 51 ⇒ trang 3 ⇒ khung 2 ⇒ 2 × 1024 + 51 = <b>2099</b>. Khớp đề.') })), say: 'Luôn <b>đổi ngược lại để kiểm</b> — mất 10 giây mà loại hết lỗi đếm nhầm dòng.', tone: 'done' });
+    }
+    return b;
+  }
+
+  /* =========================================================
+     6. TLB — hit/miss và công thức EAT
+     ========================================================= */
+  function vẽTlb(st) {
+    return '<div class="aw-col">' + lab('Một lần CPU truy xuất dữ liệu') + '<div class="aw-flow">'
+      + nút('CPU', 'địa chỉ luận lý', st.n >= 1 ? 'on' : '') + mũi(st.n >= 1)
+      + nút('TLB', 'ε = 20 ns', st.n >= 2 ? (st.hit ? 'ok' : 'bad') : '') + mũi(st.n >= 3)
+      + (st.hit === false ? nút('Bảng trang', 'trong RAM · x = 200 ns', st.n >= 3 ? 'bad' : '') + mũi(st.n >= 4) : '')
+      + nút('Dữ liệu', 'trong RAM · x = 200 ns', st.n >= (st.hit === false ? 4 : 3) ? 'ok' : '')
+      + '</div></div>'
+      + '<div class="aw-row">' + vr('ε (tra TLB)', '20 ns') + vr('x (truy xuất RAM)', '200 ns') + vr('α (hit ratio)', st.a || '0,9') + (st.tổng ? vr('Lần này tốn', st.tổng, st.hit ? 'ok' : 'bad') : '') + '</div>'
+      + (st.tính || '') + (st.kết || '');
+  }
+  function kịchTlb(giải) {
+    const b = [], đ = (st, say, tone) => b.push({ html: vẽTlb(st), say: say, tone: tone });
+    if (!giải) {
+      đ({ n: 1 }, 'Bài thầy chữa 22/09. Bộ nhớ phân trang thường phải đọc RAM <b>2 lần</b>: một lần đọc bảng trang, một lần đọc dữ liệu. TLB sinh ra để bớt lần thứ nhất.');
+      đ({ n: 2, hit: true }, '<b>Trường hợp TRÚNG (hit)</b> — xác suất α = 0,9: tra TLB mất <b>ε = 20 ns</b> và đã có ngay số khung.');
+      đ({ n: 3, hit: true, tổng: '220 ns', tính: note('hit = <b>ε + x</b> = 20 + 200 = <b>220 ns</b>') }, 'Có khung rồi thì chỉ còn <b>một</b> lần đọc RAM để lấy dữ liệu: tổng <b>220 ns</b>.');
+      đ({ n: 2, hit: false, tính: note('miss = <b>ε + 2x</b> = 20 + 400 = <b>420 ns</b>') }, '<b>Trường hợp TRƯỢT (miss)</b> — xác suất 1 − α = 0,1: tra TLB vẫn mất 20 ns nhưng <b>công cốc</b>.');
+      đ({ n: 4, hit: false, tổng: '420 ns', tính: note('miss = <b>ε + 2x</b> = 20 + 200 + 200 = <b>420 ns</b>') }, 'Phải đọc RAM <b>2 lần</b>: lần 1 lấy bảng trang, lần 2 lấy dữ liệu. Tổng <b>420 ns</b>.');
+      đ({ n: 4, hit: true, tính: note('<b>EAT = α(ε + x) + (1 − α)(ε + 2x)</b><br>= 0,9 × 220 + 0,1 × 420<br>= 198 + 42'), kết: sum('EAT = 240 ns') }, 'Trộn hai trường hợp theo xác suất là ra <b>EAT</b>.', 'done');
+      b.push({ html: vẽTlb({ n: 4, hit: true, tính: note('Khai triển ra được bản rút gọn, thi thì dùng bản này:<br><b>EAT = ε + (2 − α)·x</b><br>Thử lại: 20 + 1,1 × 200 = 20 + 220 = <b>240</b>. Khớp.') }), say: 'Thuộc <b>EAT = ε + (2 − α)x</b> là giải được cả xuôi lẫn ngược. Không có TLB thì một thao tác tốn <b>2x</b>.', tone: 'done' });
+    } else {
+      const f = t => ({ n: 4, hit: true, tính: note(t) });
+      đ(Object.assign(f('<b>EAT = (2 − α)·x + ε</b>'), { tính: note('Đề cho: α = <b>0,9</b> · EAT = <b>240 ns</b> · ε = <b>20 ns</b> · cần tìm <b>x</b>') }), 'Câu (a): gán đại lượng trước đã. Chữ “hit ratio 90%” là <b>α</b>, “thời gian tìm trong TLB” là <b>ε</b>, cái phải tìm là thời gian truy xuất bộ nhớ <b>x</b>.');
+      đ(f('240 = (2 − 0,9)·x + 20'), 'Thay thẳng vào công thức rút gọn.');
+      đ(f('240 − 20 = 1,1·x<br>220 = 1,1·x'), 'Chuyển ε sang vế trái.');
+      đ(Object.assign(f('x = 220 ÷ 1,1'), { kết: sum('(a) x = 200 ns') }), 'Chia ra là xong câu (a).', 'done');
+      đ(f('hit = 20 + 200 = 220<br>miss = 20 + 400 = 420<br>0,9 × 220 + 0,1 × 420 = 198 + 42 = <b>240</b> ✓'), 'Kiểm lại bằng dạng đầy đủ — khớp đúng 240 ns đề cho. Bước này tốn 15 giây mà chắc ăn.');
+      đ(Object.assign(f('EAT = (2 − 0,85)·200 + 20<br>= 1,15 × 200 + 20<br>= 230 + 20'), { a: '0,85', kết: sum('(b) EAT = 250 ns') }), 'Câu (b): α tụt còn <b>0,85</b>, giờ đi <b>chiều xuôi</b> với x = 200 vừa tìm được.', 'done');
+      b.push({ html: vẽTlb({ n: 4, hit: true, a: '0,85', tính: note('Để ý quan hệ: α <b>giảm</b> 5% thì EAT <b>tăng</b> 10 ns. Hit ratio càng cao, EAT càng gần x — đó là lý do người ta cố nhồi TLB cho trúng.') }), say: 'Hai chiều của cùng một công thức: <b>x = (EAT − ε) ÷ (2 − α)</b> và <b>EAT = ε + (2 − α)x</b>.', tone: 'done' });
+    }
+    return b;
+  }
+
+  /* =========================================================
+     7. THAY TRANG — FIFO / OPT / LRU chạy thật trên chuỗi của đề
+     ========================================================= */
+  const SEQ = [2, 1, 2, 5, 6, 4, 0, 1, 4, 7, 1, 3, 6, 7, 1, 3, 5, 0];
+  const K = 4;
+  function kịchPR(alg) {
+    const khung = new Array(K).fill(null), vào = [], dùng = [];
+    const b = [], lỗiTại = new Set();
+    let lỗi = 0; const thay = [];
+    const vẽ = (i, cls, victim, ghi) =>
+      dãy(SEQ, i, lỗiTại) + '<div class="aw-row"><div class="aw-col">' + lab(K + ' khung') + '<div class="aw-cells">'
+      + khung.map((v, k) => ô(v == null ? '·' : v, v == null ? 'free' : (cls === 'put' && k === ghi ? 'put' : (cls === 'hit' && k === ghi ? 'hit' : (cls === 'kill' && k === ghi ? 'kill' : ''))))).join('')
+      + '</div></div>'
+      + '<div class="aw-col">' + lab('Đếm') + '<div class="aw-row">' + vr('Lỗi trang', lỗi, lỗi ? 'bad' : '') + vr('Đã xét', i + 1) + '</div></div></div>'
+      + '<div class="aw-col">' + lab('Trang bị thay (theo thứ tự)') + '<div class="aw-chips">' + (thay.length ? thay.map(x => chip(x, 'sleep')).join('') : '<span class="aw-empty">chưa thay trang nào</span>') + '</div></div>';
+
+    b.push({ html: vẽ(-1, '', null, -1), say: 'Chuỗi tham chiếu của đề: <b>' + SEQ.join(' ') + '</b> với <b>' + K + ' khung trống</b>. Giải thuật: <b>' + (alg === 'lru' ? 'LRU — bỏ trang LÂU NHẤT CHƯA DÙNG' : alg === 'fifo' ? 'FIFO — bỏ trang VÀO SỚM NHẤT' : 'OPT — bỏ trang LÂU NHẤT MỚI DÙNG LẠI') + '</b>.' });
+
+    for (let i = 0; i < SEQ.length; i++) {
+      const p = SEQ[i], ở = khung.indexOf(p);
+      if (ở >= 0) {
+        if (alg === 'lru') { const j = dùng.indexOf(p); if (j >= 0) dùng.splice(j, 1); dùng.push(p); }
+        b.push({ html: vẽ(i, 'hit', null, ở), say: 'Trang <b>' + p + '</b> đã nằm trong khung ' + (ở + 1) + ' ⇒ <b>trúng</b>, không tính lỗi trang.' });
+        continue;
+      }
+      lỗi++; lỗiTại.add(i);
+      const trống = khung.indexOf(null);
+      if (trống >= 0) {
+        khung[trống] = p; vào.push(p); if (alg === 'lru') dùng.push(p);
+        b.push({ html: vẽ(i, 'put', null, trống), say: 'Trang <b>' + p + '</b> chưa có ⇒ <b>lỗi trang thứ ' + lỗi + '</b>. Còn khung trống nên chỉ việc nạp vào, <b>chưa phải thay ai</b>.', tone: 'bad' });
+        continue;
+      }
+      /* đầy: chọn nạn nhân */
+      let nạn, vì;
+      if (alg === 'fifo') { nạn = vào[0]; vì = 'vào sớm nhất (thứ tự vào: ' + vào.join(' → ') + ')'; }
+      else if (alg === 'lru') { nạn = dùng[0]; vì = 'lâu nhất chưa dùng (cũ → mới: ' + dùng.join(' → ') + ')'; }
+      else {
+        let xa = -1;
+        khung.forEach(v => {
+          const k = SEQ.indexOf(v, i + 1), d = k < 0 ? Infinity : k;
+          if (d > xa) { xa = d; nạn = v; }
+        });
+        vì = xa === Infinity ? 'về sau không dùng lại nữa' : 'mãi tới vị trí ' + (xa + 1) + ' mới dùng lại';
+      }
+      const vt = khung.indexOf(nạn);
+      b.push({ html: vẽ(i, 'kill', nạn, vt), say: 'Trang <b>' + p + '</b> ⇒ <b>lỗi trang thứ ' + lỗi + '</b>, mà <b>hết khung trống</b>. ' + (alg === 'opt' ? 'OPT' : alg === 'lru' ? 'LRU' : 'FIFO') + ' chọn <b>trang ' + nạn + '</b> làm nạn nhân: ' + vì + '.', tone: 'bad' });
+      khung[vt] = p; thay.push(nạn);
+      { const j = vào.indexOf(nạn); if (j >= 0) vào.splice(j, 1); } vào.push(p);
+      if (alg === 'lru') { const j = dùng.indexOf(nạn); if (j >= 0) dùng.splice(j, 1); dùng.push(p); }
+      b.push({ html: vẽ(i, 'put', null, vt), say: 'Ghi <b>trang ' + p + '</b> đè lên khung vừa giải phóng.' });
+    }
+    const đếm = {}; thay.forEach(x => { đếm[x] = (đếm[x] || 0) + 1; });
+    const max = Math.max.apply(null, Object.values(đếm).concat([0]));
+    const hay = Object.keys(đếm).filter(k => đếm[k] === max);
+    b.push({
+      html: vẽ(SEQ.length - 1, '', null, -1) + sum('Tổng ' + lỗi + ' lỗi trang · trang bị thay nhiều nhất: ' + hay.join(', ') + ' (' + max + ' lần)'),
+      say: 'Hết chuỗi: <b>' + lỗi + ' lỗi trang</b>. Dòng “trang bị thay” chính là chỗ đề hay hỏi thêm — ' + (alg === 'lru' ? 'với LRU, đáp án của thầy là <b>8 lỗi trước khi tới trang 3</b> và trang bị thay nhiều nhất là <b>6</b>.' : 'đổi giải thuật là đổi cả con số này.'),
+      tone: 'done'
+    });
+    return b;
+  }
+
+  /* =========================================================
+     ĐĂNG KÝ WIDGET THEO CHỦ ĐỀ
+     ========================================================= */
+  const WG = {
+    'c5-race': { ic: 'bolt', ttl: 'Chạy thử race condition', sub: 'Hai tiến trình cắt ngang nhau giữa 3 lệnh máy', sc: [['q3', 'Quantum 3'], ['q2', 'Quantum 2 — hỏng']], mặc: 'q2', mk: k => kịchRace(k === 'q3' ? 3 : 2) },
+    'c5-peterson': { ic: 'arrows-rotate', ttl: 'Chạy thử giải pháp Peterson', sub: 'flag và turn đổi ra sao khi hai bên cùng đòi vào', mk: () => kịchPeterson() },
+    'c5-semaphore': { ic: 'stopwatch', ttl: 'Chạy tay semaphore từng bước', sub: 'S xuống âm, hàng đợi dài ra, rồi đánh thức ngược lại', mk: () => kịchSem() },
+    'c5-kinhdien': { ic: 'triangle-exclamation', ttl: 'Bounded buffer: đảo hai dòng là deadlock', sub: 'Cùng một tình huống, chỉ khác thứ tự wait', sc: [['sai', 'Thứ tự sai'], ['dung', 'Thứ tự đúng']], mặc: 'sai', mk: k => kịchBB(k === 'sai') },
+    'c7-dang3-doi-dia-chi': { ic: 'memory', ttl: 'Đổi địa chỉ qua bảng trang', sub: 'Tách → tra bảng → ghép, trên đúng câu 24 đề CITD', sc: [['xuoi', 'Chiều xuôi'], ['nguoc', 'Chiều ngược']], mặc: 'xuoi', mk: k => kịchAddr(k === 'nguoc') },
+    'c7-tlb-eat': { ic: 'gauge-high', ttl: 'TLB trúng / trượt và công thức EAT', sub: 'Vì sao trượt tốn ε + 2x, và ráp số của bài 22/09', sc: [['luong', 'Luồng truy xuất'], ['giai', 'Giải bài 22/09']], mặc: 'luong', mk: k => kịchTlb(k === 'giai') },
+    'c8-thay-trang': { ic: 'layer-group', ttl: 'Thay trang chạy từng bước', sub: 'Chuỗi 18 trang, 4 khung — xem ai bị hy sinh và vì sao', sc: [['lru', 'LRU'], ['fifo', 'FIFO'], ['opt', 'OPT']], mặc: 'lru', mk: k => kịchPR(k) }
+  };
+
+  /* =========================================================
+     KHUNG CHẠY
+     ========================================================= */
+  const TỐC = { '0.6': 2600, '1': 1700, '1.6': 1050, '2.6': 650 };
+  let đếmId = 0;
+  const máy = {};        /* id -> {steps, i, timer, el, speed, key} */
+
+  function khungHtml(w, id) {
+    const sc = w.sc ? '<div class="aw-sc" role="group" aria-label="Chọn kịch bản">' + w.sc.map(([k, t]) =>
+      '<button type="button" data-aw-sc="' + k + '" aria-pressed="' + (k === w.mặc) + '">' + E(t) + '</button>').join('') + '</div>' : '';
+    return '<section class="aw" data-aw="' + id + '">'
+      + '<header class="aw-h"><span class="aw-ic"><i class="fa-solid fa-' + w.ic + '"></i></span>'
+      + '<span class="aw-ttl"><b>' + E(w.ttl) + '</b><em>' + E(w.sub) + '</em></span>'
+      + '<span class="aw-ctl">' + sc
+      + '<button type="button" class="aw-b main" data-aw-a="play"><i class="fa-solid fa-play"></i><span>Chạy</span></button>'
+      + '<button type="button" class="aw-b" data-aw-a="step"><i class="fa-solid fa-chevron-right"></i>Bước</button>'
+      + '<button type="button" class="aw-b" data-aw-a="reset"><i class="fa-solid fa-arrows-rotate"></i>Lại</button>'
+      + '<select class="aw-sp" data-aw-a="speed" aria-label="Tốc độ"><option value="0.6">Chậm</option><option value="1" selected>Vừa</option><option value="1.6">Nhanh</option><option value="2.6">Rất nhanh</option></select>'
+      + '</span></header>'
+      + '<div class="aw-stage" data-aw-stage></div>'
+      + '<div class="aw-say" data-aw-say><span class="n">1</span><span class="s"></span></div>'
+      + '<div class="aw-bar"><i></i></div></section>';
+  }
+
+  function vẽ(m) {
+    const s = m.steps[m.i]; if (!s) return;
+    const el = m.el;
+    el.querySelector('[data-aw-stage]').innerHTML = s.html;
+    const say = el.querySelector('[data-aw-say]');
+    say.className = 'aw-say' + (s.tone === 'done' ? ' done' : s.tone === 'bad' ? ' bad' : '');
+    say.querySelector('.n').textContent = (m.i + 1) + '/' + m.steps.length;
+    say.querySelector('.s').innerHTML = s.say;
+    el.querySelector('.aw-bar i').style.width = Math.round((m.i + 1) / m.steps.length * 100) + '%';
+    const cuối = m.i >= m.steps.length - 1;
+    const bp = el.querySelector('[data-aw-a="play"]');
+    bp.querySelector('span').textContent = m.timer ? 'Dừng' : (cuối ? 'Chạy lại' : 'Chạy');
+    bp.querySelector('i').className = 'fa-solid fa-' + (m.timer ? 'pause' : 'play');
+    el.querySelector('[data-aw-a="step"]').disabled = cuối;
+  }
+  function dừng(m) { if (m.timer) { clearInterval(m.timer); m.timer = 0; } vẽ(m); }
+  function tiến(m) {
+    if (m.i >= m.steps.length - 1) { dừng(m); return false; }
+    m.i++; vẽ(m); return true;
+  }
+  function chạy(m) {
+    if (m.timer) return dừng(m);
+    if (m.i >= m.steps.length - 1) m.i = 0;
+    m.timer = setInterval(() => { if (!tiến(m)) dừng(m); }, TỐC[m.speed] || 1700);
+    vẽ(m);
+  }
+  function nạp(m, key) {
+    dừng(m); m.key = key; m.steps = WG[m.wg].mk(key); m.i = 0; vẽ(m);
+  }
+
+  /* ---------------- gắn widget vào thẻ chủ đề ---------------- */
+  function gắn(gốc) {
+    Object.keys(WG).forEach(tid => {
+      gốc.querySelectorAll('[data-topic="' + tid + '"]:not([data-aw-done])').forEach(thẻ => {
+        thẻ.setAttribute('data-aw-done', '1');
+        const w = WG[tid], id = 'aw' + (++đếmId);
+        const hộp = document.createElement('div');
+        hộp.innerHTML = khungHtml(w, id);
+        const el = hộp.firstChild;
+        const trước = thẻ.querySelector('.tc-ex') || thẻ.querySelector('.tc-tt') || thẻ.querySelector('.tc-foot');
+        if (trước) thẻ.insertBefore(el, trước); else thẻ.appendChild(el);
+        const m = máy[id] = { wg: tid, el: el, i: 0, timer: 0, speed: '1', steps: [] };
+        nạp(m, w.mặc);
+        /* tự chạy một lần khi cuộn tới, trừ khi máy anh bật "giảm chuyển động" */
+        try {
+          const nhẹ = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (!nhẹ && window.IntersectionObserver) {
+            const io = new IntersectionObserver(es => {
+              es.forEach(e => {
+                if (e.isIntersecting && !m.đãTự) { m.đãTự = 1; chạy(m); }
+                else if (!e.isIntersecting && m.timer) dừng(m);          /* khuất mắt thì nghỉ */
+              });
+            }, { threshold: .35 });
+            io.observe(el);
+          }
+        } catch (_) {}
+      });
+    });
+  }
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest ? e.target.closest('[data-aw-a],[data-aw-sc]') : null;
+    if (!t) return;
+    const el = t.closest('.aw'); if (!el) return;
+    const m = máy[el.dataset.aw]; if (!m) return;
+    e.preventDefault();
+    if (t.dataset.awSc != null) {
+      el.querySelectorAll('[data-aw-sc]').forEach(b => b.setAttribute('aria-pressed', String(b === t)));
+      m.đãTự = 1; nạp(m, t.dataset.awSc); return;
+    }
+    const a = t.dataset.awA;
+    if (a === 'play') { m.đãTự = 1; chạy(m); }
+    else if (a === 'step') { m.đãTự = 1; dừng(m); tiến(m); }
+    else if (a === 'reset') { m.đãTự = 1; dừng(m); m.i = 0; vẽ(m); }
+  });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (!t || !t.dataset || t.dataset.awA !== 'speed') return;
+    const el = t.closest('.aw'), m = el && máy[el.dataset.aw]; if (!m) return;
+    m.speed = t.value;
+    if (m.timer) { clearInterval(m.timer); m.timer = setInterval(() => { if (!tiến(m)) dừng(m); }, TỐC[m.speed] || 1700); }
+  });
+
+  function bắtĐầu() {
+    try { gắn(document.body); } catch (e) { if (window.console) console.warn('88-anim:', e); }
+    if (!window.MutationObserver) return;
+    let hẹn = 0;
+    const ob = new MutationObserver(() => {
+      if (hẹn) return;
+      hẹn = setTimeout(() => { hẹn = 0; ob.disconnect(); try { gắn(document.body); } catch (_) {} ob.observe(document.body, { childList: true, subtree: true }); }, 90);
     });
     ob.observe(document.body, { childList: true, subtree: true });
   }
