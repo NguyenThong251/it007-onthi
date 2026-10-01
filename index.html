@@ -1940,11 +1940,11 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
 .aw-b.main{background:var(--accent, #2275ff); border-color:var(--accent, #2275ff); color:#fff}
 .aw-b.main:hover{filter:brightness(1.07); color:#fff}
 .aw-b:disabled{opacity:.45; cursor:default; transform:none}
-.aw-sp{
-  min-height:34px; padding:0 9px; border:1px solid var(--border-default, #e2e8f0);
-  border-radius:9px; background:var(--surface-card, #fff); color:var(--text-body, #5b6484);
-  font:600 12px/1 inherit; cursor:pointer;
-}
+/* dropdown tốc độ dùng chung component .qsel của trang (85-select.js),
+   chỉ thu nhỏ lại cho vừa hàng nút của widget */
+.aw .qsel{min-width:112px}
+.aw .qsel-btn{min-height:34px; padding:0 11px; border-radius:9px; font:600 12px/1 inherit}
+.aw .qsel-menu{min-width:132px}
 /* chọn kịch bản (vd: quantum 3 / quantum 2, thứ tự đúng / sai) */
 .aw-sc{display:flex; gap:0; border:1px solid var(--border-default, #e2e8f0); border-radius:9px; overflow:hidden}
 .aw-sc button{
@@ -1954,11 +1954,28 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
 .aw-sc button + button{border-left:1px solid var(--border-hairline, #eef1f6)}
 .aw-sc button[aria-pressed="true"]{background:var(--accent, #2275ff); color:#fff}
 
-.aw-stage{padding:14px 13px; display:flex; flex-direction:column; gap:12px; overflow-x:auto}
+.aw-stage{padding:15px 14px; display:flex; flex-direction:column; gap:14px; overflow-x:auto}
+
+/* khối gom các ô trạng thái — để rời ra thì nhìn như một đống mảnh vụn */
+.aw-panel{
+  display:flex; flex-wrap:wrap; align-items:center; gap:12px 16px;
+  padding:12px 14px; border-radius:12px;
+  background:var(--surface-sunken, #f7f9fc); border:1px solid var(--border-hairline, #eef1f6);
+}
+.aw-g{gap:6px; min-width:0}
+.aw-g > .aw-lab{margin:0}
+
+/* mỗi bước là một lần thay ruột: cho nội dung mới trôi vào nhẹ thay vì nhảy phắt */
+@keyframes aw-in{from{opacity:.3; transform:translateY(4px)} to{opacity:1; transform:none}}
+@keyframes aw-pop{0%{transform:scale(.92)} 60%{transform:scale(1.05)} 100%{transform:scale(1)}}
+.aw-stage.go > *{animation:aw-in .2s ease-out both}
+.aw-stage.go .aw-var.hot, .aw-stage.go .aw-var.bad, .aw-stage.go .aw-var.ok{animation:aw-pop .26s ease-out}
+.aw-stage.go .aw-cell.put, .aw-stage.go .aw-cell.kill, .aw-stage.go .aw-cell.hit{animation:aw-pop .26s ease-out}
 .aw-say{
-  display:flex; align-items:flex-start; gap:9px; padding:10px 13px;
+  display:flex; align-items:flex-start; gap:10px; padding:11px 14px;
   border-top:1px solid var(--border-hairline, #eef1f6);
-  background:var(--qd-background-info, #e7f3ff); min-height:52px;
+  background:var(--qd-background-info, #e7f3ff); min-height:66px;
+  transition:background .2s linear;
 }
 .aw-say .n{
   flex:0 0 auto; font:700 11px/1.6 var(--font-mono); color:#fff;
@@ -1975,13 +1992,14 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
 /* ---------- mảnh ghép dùng chung trong vùng vẽ ---------- */
 .aw-row{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start}
 .aw-col{display:flex; flex-direction:column; gap:7px; min-width:0}
-.aw-lab{font:600 10.5px/1.3 inherit; text-transform:uppercase; letter-spacing:.03em; color:var(--text-label, #8a93ad)}
+.aw-lab{font:600 11px/1.35 inherit; letter-spacing:.01em; color:var(--text-label, #8a93ad)}
 
 /* ô giá trị (count, S, reg, semaphore…) */
 .aw-var{
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  min-width:72px; padding:8px 11px; border-radius:10px;
-  background:var(--surface-sunken, #f7f9fc); border:1px solid var(--border-hairline, #eef1f6);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  min-width:76px; min-height:58px; padding:8px 12px; border-radius:10px;
+  background:var(--surface-card, #fff); border:1px solid var(--border-hairline, #eef1f6);
+  transition:background .2s linear, border-color .2s linear;
 }
 .aw-var b{font:700 19px/1.1 var(--font-mono); color:var(--text-primary, #282d4c); font-variant-numeric:tabular-nums}
 .aw-var span{font-size:11px; color:var(--text-muted, #a0aec0)}
@@ -2106,12 +2124,15 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
   .aw-ctl{width:100%; margin-left:0}
   .aw-b, .aw-sp, .aw-sc button{min-height:38px}
   .aw-b{flex:1 1 auto; justify-content:center}
-  .aw-stage{padding:12px 11px}
+  .aw-stage{padding:12px 11px; gap:12px}
+  .aw-panel{padding:11px 12px; gap:10px 12px}
   .aw-code li{font-size:12px}
   .aw-cell{min-width:40px; height:38px; font-size:14px}
 }
 @media (prefers-reduced-motion:reduce){
-  .aw-cell, .aw-seq span, .aw-bar i{transition:none}
+  .aw-cell, .aw-seq span, .aw-bar i, .aw-var, .aw-say{transition:none}
+  .aw-stage.go > *, .aw-stage.go .aw-var.hot, .aw-stage.go .aw-cell.put,
+  .aw-stage.go .aw-cell.kill, .aw-stage.go .aw-cell.hit{animation:none}
 }
 @media print{ .aw-ctl{display:none} }
 </style>
@@ -4919,12 +4940,11 @@ APP.views.exam = {
    Giữ nguyên thẻ <select> (ẩn nhưng vẫn sống) nên mọi code cũ đọc .value
    và nghe 'change' đều chạy y như trước; smoke.js cũng không bị ảnh hưởng. */
 (function () {
-  const ds = [...document.querySelectorAll('select.qd-select')]
-    .filter(s => !s.classList.contains('sr-only') && s.getAttribute('aria-hidden') !== 'true');
-  if (!ds.length) return;
+  const hợpLệ = s => s && s.tagName === 'SELECT' && !s.classList.contains('qsel-native')
+    && !s.classList.contains('sr-only') && s.getAttribute('aria-hidden') !== 'true';
   let đangMở = null;
 
-  ds.forEach(sel => {
+  function nâng(sel) {
     const bọc = document.createElement('div');
     bọc.className = 'qsel';
     const nút = document.createElement('button');
@@ -5011,7 +5031,14 @@ APP.views.exam = {
       if (o && chữ.textContent !== o.textContent) đồngBộ();
     }, 800);
     bọc._stop = () => clearInterval(_sync);
-  });
+  }
+
+  [...document.querySelectorAll('select.qd-select')].filter(hợpLệ).forEach(nâng);
+  /* phần nào dựng select SAU khi trang nạp (widget của 88-anim) thì gọi lại hàm này */
+  APP.nângSelect = gốc => {
+    const g = gốc && gốc.querySelectorAll ? gốc : document;
+    [...g.querySelectorAll('select.qd-select')].filter(hợpLệ).forEach(nâng);
+  };
 
   function đóngHết() {
     document.querySelectorAll('.qsel.open').forEach(b => {
@@ -5494,6 +5521,10 @@ APP.views.exam = {
   const E = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const vr = (ten, val, cls) => '<div class="aw-var ' + (cls || '') + '"><b>' + E(val) + '</b><span>' + E(ten) + '</span></div>';
   const lab = t => '<div class="aw-lab">' + E(t) + '</div>';
+  /* gom các ô trạng thái vào MỘT khối nền nhạt — để rời ra thì mỗi widget nhìn như
+     một đống mảnh vụn, đó là chỗ anh kêu rối */
+  const panel = inner => '<div class="aw-panel">' + inner + '</div>';
+  const nhóm = (t, inner) => '<div class="aw-col aw-g">' + lab(t) + inner + '</div>';
   const chip = (t, cls) => '<span class="aw-chip ' + (cls || '') + '">' + E(t) + '</span>';
   const sum = (t, bad) => '<div class="aw-sum' + (bad ? ' bad' : '') + '">' + (bad ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-circle-check"></i>') + E(t) + '</div>';
   const note = t => '<p class="aw-note">' + t + '</p>';
@@ -5521,11 +5552,11 @@ APP.views.exam = {
   const MÃ_P = ['reg1 = count', 'reg1 = reg1 + 1', 'count = reg1'];
   const MÃ_C = ['reg2 = count', 'reg2 = reg2 - 1', 'count = reg2'];
   function vẽRace(st) {
-    return '<div class="aw-row">'
-      + vr('count', st.count, st.hot === 'count' ? 'hot' : (st.sai ? 'bad' : (st.xong ? 'ok' : '')))
+    return panel(
+      vr('count', st.count, st.hot === 'count' ? 'hot' : (st.sai ? 'bad' : (st.xong ? 'ok' : '')))
       + vr('reg1 (P)', st.r1 == null ? '–' : st.r1, st.hot === 'r1' ? 'hot' : '')
-      + vr('reg2 (C)', st.r2 == null ? '–' : st.r2, st.hot === 'r2' ? 'hot' : '')
-      + '</div><div class="aw-row">'
+      + vr('reg2 (C)', st.r2 == null ? '–' : st.r2, st.hot === 'r2' ? 'hot' : ''))
+      + '<div class="aw-row">'
       + khốiMã('Producer — count++', st.ai === 'P' ? 'run' : '', MÃ_P, st.ai === 'P' ? st.pc : null)
       + khốiMã('Consumer — count--', st.ai === 'C' ? 'run' : '', MÃ_C, st.ai === 'C' ? st.cc : null)
       + '</div>' + (st.kết || '');
@@ -5557,11 +5588,11 @@ APP.views.exam = {
      ========================================================= */
   const MÃ_PT = i => ['flag[' + i + '] = true', 'turn = ' + (1 - i), 'while (flag[' + (1 - i) + '] && turn == ' + (1 - i) + ') ;', '— CRITICAL SECTION —', 'flag[' + i + '] = false'];
   function vẽPt(st) {
-    return '<div class="aw-row">'
-      + vr('flag[0]', st.f0 ? 'true' : 'false', st.hot === 'f0' ? 'hot' : (st.f0 ? 'ok' : ''))
+    return panel(
+      vr('flag[0]', st.f0 ? 'true' : 'false', st.hot === 'f0' ? 'hot' : (st.f0 ? 'ok' : ''))
       + vr('flag[1]', st.f1 ? 'true' : 'false', st.hot === 'f1' ? 'hot' : (st.f1 ? 'ok' : ''))
-      + vr('turn', st.turn == null ? '–' : st.turn, st.hot === 'turn' ? 'hot' : '')
-      + '</div><div class="aw-row">'
+      + vr('turn', st.turn == null ? '–' : st.turn, st.hot === 'turn' ? 'hot' : ''))
+      + '<div class="aw-row">'
       + khốiMã('P0', st.s0 || '', MÃ_PT(0), st.l0)
       + khốiMã('P1', st.s1 || '', MÃ_PT(1), st.l1)
       + '</div>' + (st.kết || '');
@@ -5586,11 +5617,11 @@ APP.views.exam = {
      ========================================================= */
   function vẽSem(st) {
     const q = st.q.length ? st.q.map(x => chip(x, 'sleep')).join('') : '<span class="aw-empty">rỗng</span>';
-    return '<div class="aw-row">'
-      + vr('S.value', st.S, st.hot ? 'hot' : (st.S < 0 ? 'bad' : ''))
-      + '<div class="aw-col" style="flex:1 1 200px">' + lab('Hàng đợi S.list — các tiến trình đang ngủ') + '<div class="aw-chips">' + q + '</div></div>'
-      + '</div><div class="aw-col">' + lab('Ba tiến trình') + '<div class="aw-chips">'
-      + ['A', 'B', 'C'].map(x => chip(x + (st.tt[x] ? ' · ' + st.tt[x] : ''), st.cls[x] || '')).join('') + '</div></div>'
+    return panel(
+      vr('S.value', st.S, st.hot ? 'hot' : (st.S < 0 ? 'bad' : ''))
+      + nhóm('Hàng đợi S.list · đang ngủ', '<div class="aw-chips">' + q + '</div>')
+      + nhóm('Ba tiến trình', '<div class="aw-chips">'
+        + ['A', 'B', 'C'].map(x => chip(x + (st.tt[x] ? ' · ' + st.tt[x] : ''), st.cls[x] || '')).join('') + '</div>'))
       + '<div class="aw-row">' + khốiMã('wait(S) — bản không busy waiting', '', ['S.value = S.value - 1', 'if (S.value < 0) {', '   thêm tiến trình vào S.list', '   block()', '}'], st.w)
       + khốiMã('signal(S)', '', ['S.value = S.value + 1', 'if (S.value <= 0) {', '   lấy P ra khỏi S.list', '   wakeup(P)', '}'], st.g) + '</div>'
       + (st.kết || '');
@@ -5613,14 +5644,14 @@ APP.views.exam = {
      4. BOUNDED BUFFER — sai thứ tự wait là deadlock
      ========================================================= */
   function vẽBB(st) {
-    return '<div class="aw-row">'
-      + vr('empty', st.e, st.hot === 'e' ? 'hot' : (st.e < 0 ? 'bad' : ''))
+    return panel(
+      vr('empty', st.e, st.hot === 'e' ? 'hot' : (st.e < 0 ? 'bad' : ''))
       + vr('full', st.f, st.hot === 'f' ? 'hot' : '')
       + vr('mutex', st.m, st.hot === 'm' ? 'hot' : (st.m < 0 ? 'bad' : ''))
-      + '<div class="aw-col">' + lab('Buffer (n = 2)') + '<div class="aw-cells">'
-      + [0, 1].map(i => ô(st.buf[i] == null ? '·' : st.buf[i], st.buf[i] == null ? 'free' : 'put')).join('') + '</div></div>'
-      + '</div><div class="aw-col">' + lab('Trạng thái') + '<div class="aw-chips">'
-      + chip('Producer · ' + st.tp, st.cp) + chip('Consumer · ' + st.tc, st.cc) + '</div></div>'
+      + nhóm('Buffer (n = 2)', '<div class="aw-cells">'
+        + [0, 1].map(i => ô(st.buf[i] == null ? '·' : st.buf[i], st.buf[i] == null ? 'free' : 'put')).join('') + '</div>')
+      + nhóm('Trạng thái', '<div class="aw-chips">'
+        + chip('Producer · ' + st.tp, st.cp) + chip('Consumer · ' + st.tc, st.cc) + '</div>'))
       + '<div class="aw-row">'
       + khốiMã(st.sai ? 'Producer — THỨ TỰ SAI' : 'Producer — thứ tự đúng', '', st.sai
         ? ['wait(mutex)', 'wait(empty)', 'thêm vào buffer', 'signal(mutex)', 'signal(full)']
@@ -5659,11 +5690,11 @@ APP.views.exam = {
       + '</tbody></table>';
   }
   function vẽAddr(st) {
-    return '<div class="aw-col">' + lab(st.labAddr) + '<div class="aw-addr">'
+    return panel(nhóm(st.labAddr, '<div class="aw-addr">'
       + (st.tách
         ? '<div class="p"><b>' + st.p + '</b><span>' + st.tênP + '</span></div><div class="d"><b>' + st.d + '</b><span>offset d</span></div>'
         : '<div class="q"><b>' + st.addr + '</b><span>chưa tách</span></div>')
-      + '</div></div>'
+      + '</div>'))
       + '<div class="aw-row"><div class="aw-col">' + lab('Bảng trang') + bảngTrang(st.map, st.hl) + '</div>'
       + '<div class="aw-col" style="flex:1 1 240px">' + lab('Phép tính') + (st.tính || note('<i>Chờ bước sau…</i>')) + (st.kết || '') + '</div></div>';
   }
@@ -5699,7 +5730,7 @@ APP.views.exam = {
       + (st.hit === false ? nút('Bảng trang', 'trong RAM · x = 200 ns', st.n >= 3 ? 'bad' : '') + mũi(st.n >= 4) : '')
       + nút('Dữ liệu', 'trong RAM · x = 200 ns', st.n >= (st.hit === false ? 4 : 3) ? 'ok' : '')
       + '</div></div>'
-      + '<div class="aw-row">' + vr('ε (tra TLB)', '20 ns') + vr('x (truy xuất RAM)', '200 ns') + vr('α (hit ratio)', st.a || '0,9') + (st.tổng ? vr('Lần này tốn', st.tổng, st.hit ? 'ok' : 'bad') : '') + '</div>'
+      + panel(vr('ε (tra TLB)', '20 ns') + vr('x (truy xuất RAM)', '200 ns') + vr('α (hit ratio)', st.a || '0,9') + (st.tổng ? vr('Lần này tốn', st.tổng, st.hit ? 'ok' : 'bad') : ''))
       + (st.tính || '') + (st.kết || '');
   }
   function kịchTlb(giải) {
@@ -5735,11 +5766,12 @@ APP.views.exam = {
     const b = [], lỗiTại = new Set();
     let lỗi = 0; const thay = [];
     const vẽ = (i, cls, victim, ghi) =>
-      dãy(SEQ, i, lỗiTại) + '<div class="aw-row"><div class="aw-col">' + lab(K + ' khung') + '<div class="aw-cells">'
-      + khung.map((v, k) => ô(v == null ? '·' : v, v == null ? 'free' : (cls === 'put' && k === ghi ? 'put' : (cls === 'hit' && k === ghi ? 'hit' : (cls === 'kill' && k === ghi ? 'kill' : ''))))).join('')
-      + '</div></div>'
-      + '<div class="aw-col">' + lab('Đếm') + '<div class="aw-row">' + vr('Lỗi trang', lỗi, lỗi ? 'bad' : '') + vr('Đã xét', i + 1) + '</div></div></div>'
-      + '<div class="aw-col">' + lab('Trang bị thay (theo thứ tự)') + '<div class="aw-chips">' + (thay.length ? thay.map(x => chip(x, 'sleep')).join('') : '<span class="aw-empty">chưa thay trang nào</span>') + '</div></div>';
+      nhóm('Chuỗi tham chiếu', dãy(SEQ, i, lỗiTại))
+      + panel(nhóm(K + ' khung', '<div class="aw-cells">'
+        + khung.map((v, k) => ô(v == null ? '·' : v, v == null ? 'free' : (cls === 'put' && k === ghi ? 'put' : (cls === 'hit' && k === ghi ? 'hit' : (cls === 'kill' && k === ghi ? 'kill' : ''))))).join('')
+        + '</div>')
+        + vr('Lỗi trang', lỗi, lỗi ? 'bad' : '') + vr('Đã xét', i + 1))
+      + nhóm('Trang bị thay (theo thứ tự)', '<div class="aw-chips">' + (thay.length ? thay.map(x => chip(x, 'sleep')).join('') : '<span class="aw-empty">chưa thay trang nào</span>') + '</div>');
 
     b.push({ html: vẽ(-1, '', null, -1), say: 'Chuỗi tham chiếu của đề: <b>' + SEQ.join(' ') + '</b> với <b>' + K + ' khung trống</b>. Giải thuật: <b>' + (alg === 'lru' ? 'LRU — bỏ trang LÂU NHẤT CHƯA DÙNG' : alg === 'fifo' ? 'FIFO — bỏ trang VÀO SỚM NHẤT' : 'OPT — bỏ trang LÂU NHẤT MỚI DÙNG LẠI') + '</b>.' });
 
@@ -5817,7 +5849,7 @@ APP.views.exam = {
       + '<button type="button" class="aw-b main" data-aw-a="play"><i class="fa-solid fa-play"></i><span>Chạy</span></button>'
       + '<button type="button" class="aw-b" data-aw-a="step"><i class="fa-solid fa-chevron-right"></i>Bước</button>'
       + '<button type="button" class="aw-b" data-aw-a="reset"><i class="fa-solid fa-arrows-rotate"></i>Lại</button>'
-      + '<select class="aw-sp" data-aw-a="speed" aria-label="Tốc độ"><option value="0.6">Chậm</option><option value="1" selected>Vừa</option><option value="1.6">Nhanh</option><option value="2.6">Rất nhanh</option></select>'
+      + '<select class="qd-select sm aw-sp" data-aw-a="speed" aria-label="Tốc độ chạy"><option value="0.6">Chậm</option><option value="1" selected>Vừa</option><option value="1.6">Nhanh</option><option value="2.6">Rất nhanh</option></select>'
       + '</span></header>'
       + '<div class="aw-stage" data-aw-stage></div>'
       + '<div class="aw-say" data-aw-say><span class="n">1</span><span class="s"></span></div>'
@@ -5827,7 +5859,12 @@ APP.views.exam = {
   function vẽ(m) {
     const s = m.steps[m.i]; if (!s) return;
     const el = m.el;
-    el.querySelector('[data-aw-stage]').innerHTML = s.html;
+    const sân = el.querySelector('[data-aw-stage]');
+    sân.innerHTML = s.html;
+    /* mỗi bước là một lần thay ruột, nên transition CSS không bắt được gì.
+       Gỡ rồi gắn lại class để animation chạy lại từ đầu cho mượt mắt. */
+    sân.classList.remove('go'); void sân.offsetWidth; sân.classList.add('go');
+    if (!sân.style.minHeight && sân.clientWidth) khoáCao(m);   /* tab ẩn thì bề ngang = 0, đo lại khi hiện ra */
     const say = el.querySelector('[data-aw-say]');
     say.className = 'aw-say' + (s.tone === 'done' ? ' done' : s.tone === 'bad' ? ' bad' : '');
     say.querySelector('.n').textContent = (m.i + 1) + '/' + m.steps.length;
@@ -5850,8 +5887,29 @@ APP.views.exam = {
     m.timer = setInterval(() => { if (!tiến(m)) dừng(m); }, TỐC[m.speed] || 1700);
     vẽ(m);
   }
+  /* Khung nhảy lên nhảy xuống mỗi bước là thứ gây cảm giác giật nhất.
+     Dựng thử mọi bước trong một khối ẩn cùng bề ngang, lấy chiều cao lớn nhất
+     rồi khoá sàn cho vùng vẽ — từ đó chạy bao nhiêu bước khung vẫn đứng yên.
+     (hoisted: vẽ() gọi hàm này) */
+  function khoáCao(m) {
+    const sân = m.el.querySelector('[data-aw-stage]');
+    const w = sân.clientWidth;
+    if (!w || !m.steps.length) return;
+    const ma = document.createElement('div');
+    ma.className = 'aw-stage';
+    ma.style.cssText = 'position:absolute; left:-99999px; top:0; visibility:hidden; pointer-events:none; width:' + w + 'px';
+    (m.el.parentNode || document.body).appendChild(ma);
+    let cao = 0;
+    try { m.steps.forEach(s => { ma.innerHTML = s.html; if (ma.scrollHeight > cao) cao = ma.scrollHeight; }); }
+    finally { ma.remove(); }
+    if (cao) sân.style.minHeight = cao + 'px';
+  }
   function nạp(m, key) {
-    dừng(m); m.key = key; m.steps = WG[m.wg].mk(key); m.i = 0; vẽ(m);
+    dừng(m); m.key = key; m.steps = WG[m.wg].mk(key); m.i = 0;
+    const sân = m.el.querySelector('[data-aw-stage]');
+    sân.style.minHeight = '';
+    vẽ(m);
+    requestAnimationFrame(() => khoáCao(m));
   }
 
   /* ---------------- gắn widget vào thẻ chủ đề ---------------- */
@@ -5867,13 +5925,15 @@ APP.views.exam = {
         if (trước) thẻ.insertBefore(el, trước); else thẻ.appendChild(el);
         const m = máy[id] = { wg: tid, el: el, i: 0, timer: 0, speed: '1', steps: [] };
         nạp(m, w.mặc);
+        /* <select> thô của hệ điều hành chọi hẳn với phần còn lại của trang */
+        try { if (typeof APP.nângSelect === 'function') APP.nângSelect(el); } catch (_) {}
         /* tự chạy một lần khi cuộn tới, trừ khi máy anh bật "giảm chuyển động" */
         try {
           const nhẹ = matchMedia('(prefers-reduced-motion: reduce)').matches;
           if (!nhẹ && window.IntersectionObserver) {
             const io = new IntersectionObserver(es => {
               es.forEach(e => {
-                if (e.isIntersecting && !m.đãTự) { m.đãTự = 1; chạy(m); }
+                if (e.isIntersecting && !m.đãTự) { m.đãTự = 1; khoáCao(m); chạy(m); }
                 else if (!e.isIntersecting && m.timer) dừng(m);          /* khuất mắt thì nghỉ */
               });
             }, { threshold: .35 });
@@ -5905,6 +5965,12 @@ APP.views.exam = {
     const el = t.closest('.aw'), m = el && máy[el.dataset.aw]; if (!m) return;
     m.speed = t.value;
     if (m.timer) { clearInterval(m.timer); m.timer = setInterval(() => { if (!tiến(m)) dừng(m); }, TỐC[m.speed] || 1700); }
+  });
+
+  let hẹnĐo = 0;
+  addEventListener('resize', () => {
+    if (hẹnĐo) clearTimeout(hẹnĐo);
+    hẹnĐo = setTimeout(() => { hẹnĐo = 0; Object.keys(máy).forEach(k => { const m = máy[k]; m.el.querySelector('[data-aw-stage]').style.minHeight = ''; khoáCao(m); }); }, 260);
   });
 
   function bắtĐầu() {
