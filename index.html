@@ -829,6 +829,7 @@ button.pth-mode{display:flex;align-items:center;gap:var(--space-4);color:var(--t
 .voc-q{display:flex;flex-direction:column;gap:5px}
 .voc-term{font-size:var(--text-xl);line-height:28px;font-weight:500;color:var(--text-primary);text-wrap:balance}
 .voc-term.acc{color:var(--accent)}
+.voc-term.def{font-size:var(--text-lg,18px);line-height:26px;max-width:72ch;text-wrap:pretty}
 .voc-term.mono{font-family:var(--font-mono);font-size:20px}
 .voc-term b,.voc-def b{font-weight:500;color:var(--text-primary)}
 .voc-def{color:var(--text-body);text-wrap:pretty;max-width:72ch}
@@ -2178,6 +2179,7 @@ code.k-i .t-pu{color:var(--ide-pu)} code.k-i .t-vi{color:var(--ide-vi)}
           <option value="star">Đã lưu</option>
         </select>
         <label class="qd-switch voc-cram"><input type="checkbox" id="vcram"><span class="track"></span><span>Ôn cả thẻ chưa đến hạn</span></label>
+        <label class="qd-switch voc-cram" title="Tên tiếng Việt gần như là đáp án dịch sẵn. Tắt để chỉ đọc định nghĩa, giống đề thi."><input type="checkbox" id="vshowvi"><span class="track"></span><span>Hiện tên tiếng Việt</span></label>
       </div>
       <div class="qd-seg voc-mode" id="vmode" role="group" aria-label="Chế độ luyện">
         <button type="button" data-m="exam" aria-pressed="false" title="Không gợi ý, tối đa 2 từ, 3 mạng, chấm từng chữ như giấy thi">Như đề thi</button>
@@ -3066,7 +3068,9 @@ function bankQ(key, i){ const q = (BANK[key] || [])[i]; if (!q) return null; ret
 /* mọi câu ngân hàng (đã gắn nhãn), lọc tuỳ chọn theo chương / loại */
 function bankAll(ch, type){ const out = []; Object.keys(BANK).forEach(k => (BANK[k] || []).forEach((q, i) => { if ((!ch || 'c' + k.charAt(1) === ch) && (!type || q.type === type)) out.push(bankQ(k, i)); })); return out; }
 /* thẻ thuật ngữ → câu điền (chấm bằng checkAns như câu fill) */
-function cardQ(c){ return { type: 'fill', tag: 'Thuật ngữ · ' + String(c.ch || '').toUpperCase(), q: 'Điền thuật ngữ tiếng Anh (tối đa 2 từ): ' + c.vi + '. ' + (c.def || ''), accept: c.accept.slice(), explain: 'Đáp án: ' + c.en, card: c.key, ch: c.ch }; }
+/* tên tiếng Việt chỉ hiện khi người học bật "Hiện tên tiếng Việt" ở tab Thuật ngữ (localStorage it007-vocab-ui.vi) */
+function showViPref(){ try { const o = JSON.parse(localStorage.getItem('it007-vocab-ui') || 'null'); return !!(o && o.vi); } catch (e) { return false; } }
+function cardQ(c){ return { type: 'fill', tag: 'Thuật ngữ · ' + String(c.ch || '').toUpperCase(), q: 'Điền thuật ngữ tiếng Anh (tối đa 2 từ): ' + (showViPref() ? c.vi + '. ' : '') + (c.def || ''), accept: c.accept.slice(), explain: 'Đáp án: ' + c.en, card: c.key, ch: c.ch }; }
 /* quái trong sổ lỗi sai → câu hỏi (câu ngân hàng lấy đúng câu cũ; câu sinh ra số mới cùng dạng) */
 function missQ(m){
   let q = null;
@@ -3893,7 +3897,7 @@ const VOC_UI = 'it007-vocab-ui';        // chỉ nhớ lựa chọn giao diện 
 const VOC_MODES = ['exam', 'guess', 'flash', 'mc', 'rmc'];
 const VOC_DECKS = ['all', 'hot', 'c5', 'c7', 'c8', 'star'];
 const VOC_GLC = ['all', 'c5', 'c7', 'c8'];
-let VT = { mode: 'guess', deck: 'all', cram: false, queue: [], cur: null, state: 'ask', hint: 0, val: '', done: new Set(), total: 0,
+let VT = { mode: 'guess', deck: 'all', cram: false, showVi: false, queue: [], cur: null, state: 'ask', hint: 0, val: '', done: new Set(), total: 0,
   flipped: false, mcOpts: null, pick: null, wait: null,
   combo: 0, maxCombo: 0, lives: 3, warn: '', diag: '', xp: 0, cheered: false };
 let vocGlc = 'all';
@@ -3904,11 +3908,12 @@ let vocGlc = 'all';
       if (VOC_MODES.includes(o.mode)) VT.mode = o.mode;
       if (VOC_DECKS.includes(o.deck)) VT.deck = o.deck;
       VT.cram = !!o.cram;
+      VT.showVi = !!o.vi;
       if (VOC_GLC.includes(o.glc)) vocGlc = o.glc;
     }
   } catch (e) {}
 }
-function vocSaveUI(){ try { localStorage.setItem(VOC_UI, JSON.stringify({ mode: VT.mode, deck: VT.deck, cram: VT.cram, glc: vocGlc })); } catch (e) {} }
+function vocSaveUI(){ try { localStorage.setItem(VOC_UI, JSON.stringify({ mode: VT.mode, deck: VT.deck, cram: VT.cram, vi: VT.showVi, glc: vocGlc })); } catch (e) {} }
 
 /* ---------- bộ thẻ + hàng đợi ---------- */
 function vocInDeck(c, s){
@@ -4070,6 +4075,7 @@ function vocSyncCtl(){
   document.querySelectorAll('#vmode [data-m]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.m === VT.mode)));
   const d = $('vdeck'); if (d) d.value = VT.deck;
   const cr = $('vcram'); if (cr) cr.checked = VT.cram;
+  const sv = $('vshowvi'); if (sv) sv.checked = VT.showVi;
   document.querySelectorAll('[data-glc]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.glc === vocGlc)));
 }
 function vocSetMode(m){
@@ -4079,6 +4085,8 @@ function vocSetMode(m){
   if (VT.state !== 'ask') { nextCard(); return; }                       // thẻ vừa trả lời (đúng/sai) không được trả lời lại: sổ ngày không tăng ảo
   vocFresh(); renderVocab();
 }
+/* đề chỉ còn định nghĩa (không lộ tên tiếng Việt) */
+function vocDefOnly(c){ return '<span class="voc-lab">Định nghĩa</span><span class="voc-term def">' + md(c.def) + '</span>'; }
 function vocCramOn(){ VT.cram = true; const cr = $('vcram'); if (cr) cr.checked = true; vocSaveUI(); }
 /* luyện ngay một thẻ (bấm dòng bảng tra, hoặc module khác gọi APP.vocab.practice) */
 function vocPractice(key){
@@ -4189,12 +4197,13 @@ function renderVocab(){
     h += '<button type="button" class="voc-flip' + (VT.flipped ? ' back' : '') + '" data-v="flip" aria-label="' + (VT.flipped ? 'Lật về mặt trước' : 'Lật thẻ') + '">';
     h += VT.flipped
       ? '<span class="voc-term acc">' + esc(c.main) + '</span>' + (c.en !== c.main ? '<span class="voc-alt">' + esc(c.en) + '</span>' : '') + '<span class="voc-def">' + md(c.vi) + '</span><span class="voc-def sm">' + md(c.def) + '</span>'
-      : '<span class="voc-term">' + md(c.vi) + '</span><span class="voc-def">' + md(c.def) + '</span><span class="voc-note">Bấm thẻ hoặc Space để lật</span>';
+      : (VT.showVi ? '<span class="voc-term">' + md(c.vi) + '</span><span class="voc-def">' + md(c.def) + '</span>' : vocDefOnly(c)) + '<span class="voc-note">Bấm thẻ hoặc Space để lật</span>';
     h += '</button>';
   } else if (m === 'rmc') {
     h += '<div class="voc-q"><span class="voc-lab">Chọn đúng nghĩa</span><span class="voc-term mono">' + esc(c.en) + '</span></div>';
   } else {
-    h += '<div class="voc-q"><span class="voc-term">' + md(c.vi) + '</span><span class="voc-def">' + md(c.def) + '</span>' + (m === 'mc' ? '<span class="voc-lab">Chọn thuật ngữ đúng</span>' : '') + '</div>';
+    // tên tiếng Việt là gợi ý: ẩn khi đang hỏi (trừ khi bật "Hiện tên tiếng Việt"), trả lời xong thì hiện lại
+    h += '<div class="voc-q">' + (VT.showVi || !asking ? '<span class="voc-term">' + md(c.vi) + '</span><span class="voc-def">' + md(c.def) + '</span>' : vocDefOnly(c)) + (m === 'mc' ? '<span class="voc-lab">Chọn thuật ngữ đúng</span>' : '') + '</div>';
   }
   if (m === 'guess') h += '<div class="mask" aria-label="Mẫu chữ của đáp án">' + esc(mask(c, asking ? VT.hint : 999)) + '</div>';
   if (typed) {
@@ -4276,6 +4285,7 @@ $('vbox').addEventListener('input', e => {
 document.querySelectorAll('#vmode [data-m]').forEach(b => b.addEventListener('click', () => vocSetMode(b.dataset.m)));
 $('vdeck').addEventListener('change', e => { VT.deck = VOC_DECKS.includes(e.target.value) ? e.target.value : 'all'; vocSaveUI(); buildVQueue(); });
 $('vcram').addEventListener('change', e => { VT.cram = e.target.checked; vocSaveUI(); buildVQueue(); });
+$('vshowvi').addEventListener('change', e => { VT.showVi = e.target.checked; vocSaveUI(); renderVocab(); });
 setInterval(() => {
   if (VT.cur || !VT.wait || $('v-vocab').hidden) return;
   if (VT.wait <= now()) nextCard();
